@@ -63,6 +63,15 @@ cd Examples/Tutorial_msx_z88dk_01
 ./compile.sh all
 ```
 
+디스크 생성 검증 패턴(권장):
+```bash
+# 1) create 종료코드 확인
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool create /tmp/msx_test.dsk -f msxdsk --fs msxdos --force
+
+# 2) info 결과 파일시스템 문자열 확인
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool info /tmp/msx_test.dsk | rg -q "File System: MSX-DOS"
+```
+
 산출물:
 - `build/HELLO.COM`
 - `build/Tutorial_msx_z88dk_01.dsk`

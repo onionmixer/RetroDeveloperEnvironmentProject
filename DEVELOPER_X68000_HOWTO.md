@@ -155,6 +155,15 @@ make run-hello_file   # hello_file.x 실행
 ./RetroDeveloperEnvironmentDisktool/build/rdedisktool info /tmp/newdisk.xdf
 ```
 
+권장 검증(둘 다 필수):
+```bash
+# 1) 생성 명령 종료코드 확인
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool create /tmp/newdisk.xdf -f xdf --fs human68k --force
+
+# 2) 파일시스템 식별 문자열 확인
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool info /tmp/newdisk.xdf | rg -q "File System: Human68k"
+```
+
 권장:
 - 실제 Human68k 실행용 디스크는 이미 준비된 부팅/작업 디스크(`diskwork/bootdisk/x68000/HUMAN302.XDF`, `Emulator/x68000/work.xdf`)를 기준으로 운용합니다.
 - 새 이미지에 파일을 넣기 전 `info`/`list`로 파일시스템과 여유 공간을 먼저 확인합니다.

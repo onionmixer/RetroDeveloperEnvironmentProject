@@ -153,6 +153,11 @@ create_disk() {
 
     echo "Creating MSX-DOS disk image..."
     "$RDEDISKTOOL" create "$DISK_IMAGE" -f msxdsk --fs msxdos --force
+    if ! "$RDEDISKTOOL" info "$DISK_IMAGE" | rg -q "File System: MSX-DOS"; then
+        echo "Error: created image is not recognized as MSX-DOS."
+        "$RDEDISKTOOL" info "$DISK_IMAGE" || true
+        exit 1
+    fi
 
     echo "Adding $OUTPUT_NAME.COM to disk..."
     "$RDEDISKTOOL" add "$DISK_IMAGE" "$OUTPUT_NAME.COM"

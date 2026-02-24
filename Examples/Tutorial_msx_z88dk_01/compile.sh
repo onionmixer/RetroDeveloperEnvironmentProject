@@ -96,6 +96,11 @@ create_disk() {
     }
 
     "$RDEDISKTOOL" create "$DISK_IMAGE" -f msxdsk --fs msxdos --force
+    if ! "$RDEDISKTOOL" info "$DISK_IMAGE" | rg -q "File System: MSX-DOS"; then
+        echo "Error: created image is not recognized as MSX-DOS." >&2
+        "$RDEDISKTOOL" info "$DISK_IMAGE" || true
+        exit 1
+    fi
     "$RDEDISKTOOL" add "$DISK_IMAGE" "$com_path" "${OUTPUT_NAME}.COM"
 
     # Keep compatibility with previous tutorial layout.

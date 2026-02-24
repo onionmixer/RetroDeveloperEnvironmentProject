@@ -223,6 +223,17 @@ rdedisktool create mydisk.do -f do --fs dos33
 rdedisktool create mydisk.po -f po --fs prodos -n MYDISK
 ```
 
+생성 검증(권장, 둘 다 수행):
+```bash
+# 1) create 종료코드 확인
+rdedisktool create mydisk.do -f do --fs dos33 --force
+rdedisktool create mydisk.po -f po --fs prodos -n MYDISK --force
+
+# 2) info 결과의 파일시스템 문자열 확인
+rdedisktool info mydisk.do | rg -q "File System: DOS 3.3"
+rdedisktool info mydisk.po | rg -q "File System: ProDOS"
+```
+
 파일 추가:
 ```bash
 rdedisktool add mydisk.do ./HELLO HELLO --type B --addr 0x0803

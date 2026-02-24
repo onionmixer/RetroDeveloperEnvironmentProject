@@ -175,7 +175,15 @@ rdedisktool create msx.dsk -f msxdsk --fs msxdos --force
 | X68000 | `xdf`, `dim` |
 
 > **참고**: 생성된 디스크는 부팅 불가능합니다 (부트 코드 미포함).
-> **참고**: 도구 버전에 따라 `create --help` 출력 예시에는 X68000 생성 옵션이 누락되어 보일 수 있으나, 실제 바이너리에서 `xdf/dim` 생성이 지원될 수 있습니다. 항상 현재 바이너리로 `info/list/validate`까지 확인하세요.
+> **참고**: 도구 버전에 따라 `create --help` 출력 예시에 일부 항목이 누락되어 보일 수 있습니다. 항상 현재 바이너리로 아래 두 검사를 함께 수행하세요.
+> 1) `create ... --fs ...` 종료 코드 확인
+> 2) `info ... | rg -q "File System: ..."` 문자열 확인
+>
+> 플랫폼별 문자열 예시:
+> - Apple DOS 3.3: `File System: DOS 3.3`
+> - Apple ProDOS: `File System: ProDOS`
+> - MSX: `File System: MSX-DOS` (MSX-DOS 1/2 공통 부분 문자열)
+> - X68000: `File System: Human68k`
 
 ### 디스크 이미지 수정 후 에뮬레이터 장착
 ```bash

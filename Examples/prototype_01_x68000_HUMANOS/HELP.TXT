@@ -1,0 +1,39 @@
+Prototype 01 X68000 Help
+========================
+
+Controls
+- W A S D : Move
+- H       : Open/close help
+- M       : Monster move ON/OFF
+- 1 / 0   : Yes / No
+- Q       : Quit prompt
+
+Map Symbols
+- ! : Player
+- $ : Monster
+- # : Wall
+- @ : Door
+- < : Stair Down
+- > : Stair Up
+- % : Box
+
+Interaction
+1) Move into Door/Stair tile
+2) Confirm with 1(yes) or 0(no)
+3) Transition to linked room
+
+Box Flow
+1) Move into % tile
+2) Open prompt (1/0)
+3) Effect message
+4) Item list message
+
+Notes
+- Viewport is fixed at 20x20
+- Status message overwrites on the same line
+- Long messages are truncated with "..."
+
+Help Scroll
+- W/S : line scroll
+- SPACE/H : return to game
+- Q : quit prompt
