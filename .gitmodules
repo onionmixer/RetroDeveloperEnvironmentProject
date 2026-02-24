@@ -19,14 +19,17 @@
 [submodule "RetroDeveloperEnvironmentMonitor"]
 	path = RetroDeveloperEnvironmentMonitor
 	url = https://github.com/onionmixer/RetroDeveloperEnvironmentMonitor.git
-[submodule "Toolchain/AppleII/apple2flat"]
-	path = Toolchain/AppleII/apple2flat
+[submodule "Library/AppleII/apple2flat"]
+	path = Library/AppleII/apple2flat
 	url = https://github.com/bbbradsmith/apple2flat.git
+[submodule "Library/AppleII/souless_apple2"]
+	path = Library/AppleII/souless_apple2
+	url = https://github.com/gnos78/souless_apple2
 [submodule "Toolchain/MSX/HITECH_TOOLCHAIN"]
 	path = Toolchain/MSX/HITECH_TOOLCHAIN
 	url = https://github.com/onionmixer/HITECH_TOOLCHAIN.git
-[submodule "Toolchain/x68000/X68KTutorials"]
-	path = Toolchain/x68000/X68KTutorials
+[submodule "Library/x68000/X68KTutorials"]
+	path = Library/x68000/X68KTutorials
 	url = https://github.com/FedericoTech/X68KTutorials.git
 [submodule "resource/x68000/InsideX68000-errata"]
 	path = resource/x68000/InsideX68000-errata
