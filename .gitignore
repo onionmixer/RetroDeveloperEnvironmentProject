@@ -4,3 +4,5 @@ resource_extra/*
 resource_extra/zxcc/*
 !resource_extra/zxcc/zxcc-debian/
 
+# ignore only PNG files in repository root
+/*.png
