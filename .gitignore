@@ -4,5 +4,8 @@ resource_extra/*
 resource_extra/zxcc/*
 !resource_extra/zxcc/zxcc-debian/
 
+# large binary archives
+Toolchain/x68000/toolchain/elf2x68k.tar.bz2
+
 # ignore only PNG files in repository root
 /*.png
