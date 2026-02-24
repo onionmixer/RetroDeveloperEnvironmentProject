@@ -1,0 +1,6 @@
+.globl _ubox_set_mode
+
+CHGMOD = 0x005f
+
+_ubox_set_mode::
+	jp CHGMOD

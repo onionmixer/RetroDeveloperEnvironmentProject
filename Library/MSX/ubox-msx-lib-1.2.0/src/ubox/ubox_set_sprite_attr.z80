@@ -1,0 +1,27 @@
+.globl _ubox_set_sprite_attr
+.globl _ubox_write_vm
+
+SP_ATTRS = 0x1b00
+
+_ubox_set_sprite_attr::
+	ld e, l
+	ld d, h
+
+	ld hl, #2
+	add hl, sp
+	ld l, (hl)
+	sla l
+	sla l
+	ld h, #0
+	ld bc, #SP_ATTRS
+	add hl, bc
+
+	push de
+	ld de, #4
+	; hl: dst, de: len, stack: src
+	call _ubox_write_vm
+
+	pop hl
+	inc sp
+	jp (hl)
+

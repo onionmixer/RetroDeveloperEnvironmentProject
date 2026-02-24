@@ -11,9 +11,12 @@
   - `Emulator/openMSX`
   - `Emulator/x68000`
 - 툴체인:
-  - `Toolchain/AppleII`
   - `Toolchain/MSX/HITECH_TOOLCHAIN`
   - `Toolchain/x68000`
+- 라이브러리/참고 자산:
+  - `Library/AppleII`
+  - `Library/MSX`
+  - `Library/x68000`
 
 ## MSX 도구 재배치 요약
 
@@ -31,6 +34,12 @@ MSX 뱅킹/패킹 도구는 다음 구조를 사용합니다.
 운영 원칙:
 - MSX 컴파일/빌드/패킹은 C 도구(`bltoolc`, `pack-nonmapper`)를 기본 경로로 사용
 - Python 도구는 fallback 또는 검증(parity/리포트) 용도로만 사용
+
+## 부팅 디스크 경로
+
+- Apple II: `diskwork/bootdisk/AppleII/`
+- MSX: `diskwork/bootdisk/msx/`
+- X68000: `diskwork/bootdisk/x68000/`
 
 ## 빠른 시작
 
@@ -64,6 +73,7 @@ make
 ```bash
 # MSX z88dk MSX-DOS2
 cd Examples/Tutorial_msx_z88dk_01 && ./compile.sh all
+./run_openmsx_tutorial_msx_z88dk_01.sh
 
 # MSX Hi-Tech C ROM (원문 개념의 네이티브 변환)
 cd ../Tutorial_msx_hitech_rom_01 && ./compile.sh all
@@ -81,22 +91,9 @@ cd ../Tutorial_msx_hitech_rom_02 && ./compile.sh all
 # - TUTORIAL_ROM2_NONMAPPER.rom: openMSX -carta용 AB 헤더 패키징 결과
 # - 목적: BLMKRULE/generated .MK 기반 ROM 생성 검증
 
-# MSX Hi-Tech C ROM (CPMEMU EXAMPLE ROM 5종 배치 빌드)
-cd ../Tutorial_msx_hitech_rom_03 && ./compile.sh all
-
-# 대상:
-# - 0HELLO.ROM, 0HELLO_STAY.ROM, 0BGM.ROM, 0HANGUL.ROM, 0HANIME.ROM, 0TETRIS.ROM
-# - 각 예제별 *_NONMAPPER.rom 생성 + openMSX 개별 실행 스크립트 제공
-# - 실행 스크립트:
-#   - run_openmsx_0hello_rom.sh
-#   - run_openmsx_0hello_stay_rom.sh
-#   - run_openmsx_0bgm_rom.sh
-#   - run_openmsx_0hangul_rom.sh
-#   - run_openmsx_0hanime_rom.sh
-#   - run_openmsx_0tetris_rom.sh
-
 # MSX z88dk ROM
 cd ../Tutorial_msx_z88dk_rom_01 && ./compile.sh all
+./run_openmsx_tutorial_msx_z88dk_rom_01.sh
 
 # X68000 run68 스모크
 cd ../Tutorial_x68000_01 && ./compile.sh all
@@ -109,7 +106,6 @@ cd ../Tutorial_x68000_01 && ./compile.sh all
 - MSX: `DEVELOPER_MSX_HOWTO.md`
 - MSX Hi-Tech C ROM proof 튜토리얼: `Examples/Tutorial_msx_hitech_rom_01/README.md`
 - MSX Hi-Tech C ROM BLMKRULE 튜토리얼: `Examples/Tutorial_msx_hitech_rom_02/README.md`
-- MSX Hi-Tech C ROM CPMEMU EXAMPLE 튜토리얼: `Examples/Tutorial_msx_hitech_rom_03/README.md`
 - MSX z88dk ROM 튜토리얼: `Examples/Tutorial_msx_z88dk_rom_01/README.md`
 - X68000: `DEVELOPER_X68000_HOWTO.md`
 - 디스크 작업: `FLOPPY_IMAGE_OPERATION.md`
@@ -123,8 +119,9 @@ cd ../Tutorial_x68000_01 && ./compile.sh all
 ## 주의사항
 
 - MSX-DOS 디스크 부팅은 FDD 지원 머신/ROM 환경이 필요합니다.
-- X68000 Human68k 실행 시 `iplrom.dat`, `cgrom.dat`, `HUMAN302.XDF` 확인이 필요합니다.
-- Apple II `apple2flat` 경로(`Toolchain/AppleII/apple2flat`)는 실험적(WIP)입니다.
+- X68000 Human68k 실행 시 `iplrom.dat`, `cgrom.dat`, `diskwork/bootdisk/x68000/HUMAN302.XDF` 확인이 필요합니다.
+- Apple II `apple2flat` 경로(`Library/AppleII/apple2flat`)는 실험적(WIP)입니다.
+- `Library/AppleII/souless_apple2`, `Library/MSX/ubox-msx-lib-1.2.0`, `Library/x68000/X68KTutorials`는 외부 라이브러리/참고 자산 경로입니다.
 - Hi-Tech C ROM 튜토리얼은 원문(DOS/Windows) 절차를 Linux 네이티브 파이프라인으로 치환한 구현입니다.
 - z88dk ROM은 `subtype=rom/rom2`로 타깃을 선택합니다.
 

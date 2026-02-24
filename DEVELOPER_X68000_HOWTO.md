@@ -16,7 +16,7 @@
 - 크로스 툴체인(내장):
   - `Toolchain/x68000/toolchain/m68k-xelf`
 - 튜토리얼 리소스:
-  - `Toolchain/x68000/X68KTutorials`
+  - `Library/x68000/X68KTutorials`
 - 예제 소스:
   - `Emulator/x68000/src/*.c`
 - 빌드 산출물:
@@ -38,7 +38,7 @@
 - 실행 환경:
   - `Emulator/x68000/px68k-onionmixer/px68k-onionmixer`
 - 부팅 디스크 기본값:
-  - `Emulator/x68000/px68k-onionmixer/HUMAN302.XDF`
+  - `diskwork/bootdisk/x68000/HUMAN302.XDF`
 - ROM 파일:
   - `Emulator/x68000/px68k-onionmixer/iplrom.dat`
   - `Emulator/x68000/px68k-onionmixer/cgrom.dat`
@@ -80,7 +80,7 @@ make CPU=68030
 ./Emulator/x68000/px68k-onionmixer/px68k-onionmixer \
   --iplrom ./Emulator/x68000/px68k-onionmixer/iplrom.dat \
   --cgrom ./Emulator/x68000/px68k-onionmixer/cgrom.dat \
-  --fdd0  ./Emulator/x68000/px68k-onionmixer/HUMAN302.XDF
+  --fdd0  ./diskwork/bootdisk/x68000/HUMAN302.XDF
 ```
 
 ### 1.4 검증 대상 예시
@@ -155,7 +155,7 @@ make run-hello_file   # hello_file.x 실행
 ```
 
 권장:
-- 실제 Human68k 실행용 디스크는 이미 준비된 부팅/작업 디스크(`HUMAN302.XDF`, `work.xdf`)를 기준으로 운용합니다.
+- 실제 Human68k 실행용 디스크는 이미 준비된 부팅/작업 디스크(`diskwork/bootdisk/x68000/HUMAN302.XDF`, `Emulator/x68000/work.xdf`)를 기준으로 운용합니다.
 - 빈 이미지 생성 직후 파일 추가가 실패하면(`Not enough space`) 파일시스템/초기화 상태를 먼저 확인합니다.
 
 ---
@@ -180,7 +180,7 @@ FDD1_DISK=/tmp/data_disk.xdf \
 
 우선순위:
 1. 환경변수(`PX68K`, `IPL_ROM`, `CG_ROM`, `BOOT_DISK`, `FDD1_DISK`)가 있으면 그 값을 사용
-2. 없으면 스크립트가 `Emulator/x68000`와 `Toolchain/x68000` 후보 경로를 자동 탐색
+2. 없으면 스크립트가 `diskwork/bootdisk/x68000`, `Emulator/x68000`, `Toolchain/x68000` 후보 경로를 자동 탐색
 
 ### 4.2 내부에서 확인하는 경로
 
@@ -191,7 +191,7 @@ FDD1_DISK=/tmp/data_disk.xdf \
 - CG ROM:
   - `Emulator/x68000/px68k-onionmixer/cgrom.dat`
 - 부팅 디스크(FDD0):
-  - `Emulator/x68000/px68k-onionmixer/HUMAN302.XDF`
+  - `diskwork/bootdisk/x68000/HUMAN302.XDF`
 - 선택 디스크(FDD1, 옵션):
   - `FDD1_DISK` 환경변수로 주입 가능
 
@@ -204,7 +204,7 @@ FDD1_DISK=/tmp/data_disk.xdf \
 - `CG ROM not found`:
   - `cgrom.dat` 위치 확인
 - `Boot disk not found`:
-  - `HUMAN302.XDF` 위치 확인
+  - `diskwork/bootdisk/x68000/HUMAN302.XDF` 위치 확인
 
 ### 4.4 실행 중 단축키
 

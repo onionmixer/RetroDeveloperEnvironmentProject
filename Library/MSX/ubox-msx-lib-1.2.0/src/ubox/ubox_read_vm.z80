@@ -1,0 +1,25 @@
+.globl _ubox_read_vm
+
+LDIRMV = 0x0059
+
+_ubox_read_vm::
+	ex de, hl
+	; dst -> de
+	; len -> hl
+	ld c, l
+	ld b, h
+	; len -> bc
+
+	ld hl, #2
+	add hl, sp
+	ld a, (hl)
+	inc hl
+	ld h, (hl)
+	ld l, a
+	; src -> hl
+
+	call LDIRMV
+
+	pop hl
+	pop bc
+	jp (hl)

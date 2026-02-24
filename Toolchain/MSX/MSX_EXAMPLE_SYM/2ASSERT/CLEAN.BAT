@@ -1,1 +1,0 @@
-make -fMAKEFILE CFG=2ASSERT clean

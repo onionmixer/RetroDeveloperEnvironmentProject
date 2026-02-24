@@ -1,1 +1,0 @@
-make -fMAKEFILE CFG=0TETRIS clean

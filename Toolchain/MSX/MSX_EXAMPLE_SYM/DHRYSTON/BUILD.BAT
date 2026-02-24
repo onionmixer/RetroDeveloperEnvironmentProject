@@ -1,3 +1,0 @@
-make -fMAKEFILE CFG=DHRYSTON clean
-make -fMAKEFILE CFG=DHRYSTON
-pause

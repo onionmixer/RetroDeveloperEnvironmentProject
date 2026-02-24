@@ -1,0 +1,16 @@
+.globl _mplayer_init
+
+.globl _PLY_AKM_INIT
+
+_mplayer_init::
+	ld ix, #2
+	add ix, sp
+	ld a, 0 (ix)
+
+	di
+	call _PLY_AKM_INIT
+	ei
+
+	pop hl
+	inc sp
+	jp (hl)

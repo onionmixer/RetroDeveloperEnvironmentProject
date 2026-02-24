@@ -69,11 +69,12 @@ fi
 
 if [[ -z "$BOOT_DISK" ]]; then
     BOOT_DISK="$(first_existing_file \
+        "$SCRIPT_DIR/diskwork/bootdisk/x68000/HUMAN302.XDF" \
         "$SCRIPT_DIR/Emulator/x68000/px68k-onionmixer/HUMAN302.XDF" \
         "$SCRIPT_DIR/Emulator/x68000/work.xdf" \
         "$SCRIPT_DIR/Toolchain/x68000/HUMAN302.XDF" \
         "$SCRIPT_DIR/Toolchain/x68000/work.xdf" \
-    )" || BOOT_DISK="$SCRIPT_DIR/Emulator/x68000/px68k-onionmixer/HUMAN302.XDF"
+    )" || BOOT_DISK="$SCRIPT_DIR/diskwork/bootdisk/x68000/HUMAN302.XDF"
 fi
 
 # Check if px68k exists

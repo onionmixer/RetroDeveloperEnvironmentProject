@@ -1,0 +1,8 @@
+.globl _ubox_read_keys
+
+SNSMAT = 0x0141
+
+_ubox_read_keys::
+	call SNSMAT
+	cpl
+	ret

@@ -1,0 +1,27 @@
+.globl _ubox_set_sprite_pat8
+.globl _ubox_write_vm
+
+SP_PATTERNS = 0x3800
+
+_ubox_set_sprite_pat8::
+	ld e, l
+	ld d, h
+
+	ld hl, #2
+	add hl, sp
+	ld l, (hl)
+	ld h, #0
+	add hl, hl
+	add hl, hl
+	add hl, hl
+	ld bc, #SP_PATTERNS
+	add hl, bc
+
+	push de
+	ld de, #8
+	; hl: dst, de: len, stack: src
+	call _ubox_write_vm
+
+	pop hl
+	inc sp
+	jp (hl)

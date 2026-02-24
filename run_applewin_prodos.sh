@@ -47,9 +47,9 @@ fi
 
 if [[ -z "$BOOT_DISK" ]]; then
     BOOT_DISK="$(first_existing_file \
-        "$SCRIPT_DIR/diskwork/bootdisk/appleii/prodos242.dsk" \
-        "$SCRIPT_DIR/diskwork/bootdisk/appleii/ProDOS_2_4_3.po" \
-    )" || BOOT_DISK="$SCRIPT_DIR/diskwork/bootdisk/appleii/prodos242.dsk"
+        "$SCRIPT_DIR/diskwork/bootdisk/AppleII/prodos242.dsk" \
+        "$SCRIPT_DIR/diskwork/bootdisk/AppleII/ProDOS_2_4_3.po" \
+    )" || BOOT_DISK="$SCRIPT_DIR/diskwork/bootdisk/AppleII/prodos242.dsk"
 fi
 
 if [[ -z "$PROGRAM_DISK" ]]; then

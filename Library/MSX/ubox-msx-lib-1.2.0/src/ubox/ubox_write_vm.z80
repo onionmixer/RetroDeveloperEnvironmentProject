@@ -1,0 +1,25 @@
+.globl _ubox_write_vm
+
+LDIRVM = 0x005c
+
+_ubox_write_vm::
+	ex de, hl
+	; dst -> de
+	; len -> hl
+	ld c, l
+	ld b, h
+	; len -> bc
+
+	ld hl, #2
+	add hl, sp
+	ld a, (hl)
+	inc hl
+	ld h, (hl)
+	ld l, a
+	; src -> hl
+
+	call LDIRVM
+
+	pop hl
+	pop af
+	jp (hl)

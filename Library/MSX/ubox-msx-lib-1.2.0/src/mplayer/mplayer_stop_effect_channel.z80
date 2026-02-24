@@ -1,0 +1,8 @@
+.module mplayer
+
+.globl _mplayer_stop_effect_channel
+
+.globl _PLY_AKM_STOPSOUNDEFFECTFROMCHANNEL
+
+_mplayer_stop_effect_channel::
+        jp _PLY_AKM_STOPSOUNDEFFECTFROMCHANNEL

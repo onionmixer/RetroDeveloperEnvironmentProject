@@ -36,12 +36,23 @@
 - 모니터: `RetroDeveloperEnvironmentMonitor/`
 - 에뮬레이터: `Emulator/`
 - 툴체인: `Toolchain/`
+- 라이브러리/외부 자산: `Library/`
 - 예제: `Examples/`
 - 부팅 디스크: `diskwork/bootdisk/`
 - 스펙 문서: `specs/`
 
-Apple II 툴체인 참고:
-- `Toolchain/AppleII/apple2flat` (실험적 cc65 프레임워크)
+부팅 디스크 하위 경로:
+- Apple II: `diskwork/bootdisk/AppleII/`
+- MSX: `diskwork/bootdisk/msx/`
+- X68000: `diskwork/bootdisk/x68000/`
+
+Apple II 라이브러리 참고:
+- `Library/AppleII/apple2flat` (실험적 cc65 프레임워크)
+- `Library/AppleII/souless_apple2` (Apple II 프로젝트 자산/소스)
+
+플랫폼별 라이브러리 참고:
+- `Library/MSX/ubox-msx-lib-1.2.0`
+- `Library/x68000/X68KTutorials`
 
 ### 2.2 대표 튜토리얼 (최신)
 
@@ -53,7 +64,6 @@ Apple II 툴체인 참고:
   - `Examples/Tutorial_msx_hitech_01` (Hi-Tech C MSX-DOS2)
   - `Examples/Tutorial_msx_hitech_rom_01` (Hi-Tech C ROM, native 변환)
   - `Examples/Tutorial_msx_hitech_rom_02` (Hi-Tech C ROM, BLMKRULE 기반, openMSX Hello World 검증 완료)
-  - `Examples/Tutorial_msx_hitech_rom_03` (CPMEMU EXAMPLE ROM 5종 일괄 빌드/검증)
   - `Examples/Tutorial_msx_z88dk_rom_01` (z88dk ROM)
 - X68000:
   - `Examples/Tutorial_x68000_01` (run68 자동 검증)
@@ -89,7 +99,6 @@ Apple II 툴체인 참고:
 - ROM mode(`app-mode=0`, `rom-mode=1|2`)의 Linux 뱅킹툴/패커 상세는 `DEVELOPER_MSX_HOWTO.md`의 `3.4 ROM mode 빌드(뱅킹툴 + 패커) 상세`를 참고합니다.
 - 권장 예제 경로:
   - `Examples/Tutorial_msx_hitech_rom_02`
-  - `Examples/Tutorial_msx_hitech_rom_03`
 - 핵심 체크:
   - BL_ROM 시그니처(`ROM `), 카트리지 헤더(`AB`), `__Lbss` RAM 배치, openMSX 예제별 화면 출력 확인
 
@@ -289,7 +298,7 @@ make
 
 ### 9.4 X68000/px68k 특이사항
 
-- `iplrom.dat`, `cgrom.dat`, `HUMAN302.XDF` 누락 시 부팅 불가
+- `iplrom.dat`, `cgrom.dat`, `diskwork/bootdisk/x68000/HUMAN302.XDF` 누락 시 부팅 불가
 - `FDD1_DISK`를 사용할 경우 파일 존재를 먼저 검증
 
 ---

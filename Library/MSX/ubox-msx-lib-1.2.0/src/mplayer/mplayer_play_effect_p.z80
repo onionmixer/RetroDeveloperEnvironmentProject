@@ -1,0 +1,46 @@
+.module mplayer
+
+.globl _mplayer_play_effect_p
+.globl _mplayer_is_sound_effect_on
+.globl mplayer_current_efx
+
+.globl _PLY_AKM_PLAYSOUNDEFFECT
+
+_mplayer_play_effect_p::
+	ld e, a
+	ld c, l
+
+	ld hl, #2
+	add hl, sp
+	ld b, (hl)
+
+	; e effect no
+	; bc: channel and volume
+	push bc
+	push de
+	ld a, c
+	call _mplayer_is_sound_effect_on
+
+	or a
+	pop de
+	pop bc
+	jr z, play_efx
+
+	ld a, (mplayer_current_efx)
+	; comment out following line if you don't want to
+	; replace current sound if is the same effect type
+	dec a
+	cp e
+	jp nc, play_exit
+
+play_efx:
+	; all good, play the effect
+	ld a, e
+	ld (mplayer_current_efx), a
+
+	call _PLY_AKM_PLAYSOUNDEFFECT
+
+play_exit:
+	pop hl
+	inc sp
+	jp (hl)

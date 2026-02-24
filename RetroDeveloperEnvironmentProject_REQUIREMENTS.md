@@ -121,27 +121,28 @@ make
 ```
 
 - 크로스 툴체인: `Toolchain/x68000/toolchain/m68k-xelf`
-- 튜토리얼/참고: `Toolchain/x68000/X68KTutorials`
+- 튜토리얼/참고: `Library/x68000/X68KTutorials`
+- Human68k 부팅 디스크(기본): `diskwork/bootdisk/x68000/HUMAN302.XDF`
 
 ### 9. Apple2Flat (선택, 실험적)
 
-`Toolchain/AppleII/apple2flat`은 cc65 기반 Apple II 프레임워크입니다.
+`Library/AppleII/apple2flat`은 cc65 기반 Apple II 프레임워크입니다.
 
 - 상태: WIP (일반 사용 전 단계)
 - 기본 타겟: `disk` (`make` 기본)
 - 주요 산출물(성공 시):
-  - `Toolchain/AppleII/apple2flat/temp/a2f_demo.dsk`
-  - `Toolchain/AppleII/apple2flat/temp/a2f_demo.sym`
-  - `Toolchain/AppleII/apple2flat/temp/a2f_disk.lib`
-  - `Toolchain/AppleII/apple2flat/temp/a2f_tape.lib`
-  - `Toolchain/AppleII/apple2flat/temp/a2f_cc65.lib`
+  - `Library/AppleII/apple2flat/temp/a2f_demo.dsk`
+  - `Library/AppleII/apple2flat/temp/a2f_demo.sym`
+  - `Library/AppleII/apple2flat/temp/a2f_disk.lib`
+  - `Library/AppleII/apple2flat/temp/a2f_tape.lib`
+  - `Library/AppleII/apple2flat/temp/a2f_cc65.lib`
 
 중요:
-- 기본 `makefile.common`은 `Toolchain/AppleII/apple2flat/cc65/bin/*`을 기대합니다.
+- 기본 `makefile.common`은 `Library/AppleII/apple2flat/cc65/bin/*`을 기대합니다.
 - 현재 저장소에는 해당 `cc65/` 디렉터리가 없으므로, 시스템 cc65를 명시 오버라이드해야 합니다.
 
 ```bash
-cd Toolchain/AppleII/apple2flat
+cd Library/AppleII/apple2flat
 make \
   CC65="$(command -v cc65)" \
   CA65="$(command -v ca65)" \
@@ -174,6 +175,8 @@ sudo make install
 | `run_applewin_prodos.sh` | Apple II ProDOS | `APPLEWIN`, `BOOT_DISK`, `PROGRAM_DISK` |
 | `run_openmsx_msxdos2.sh` | openMSX + MSX-DOS2 | `OPENMSX`, `OPENMSX_SHARE`, `BOOT_DISK`, `MACHINE` |
 | `run_px68k_humanos.sh` | px68k + Human68k | `PX68K`, `IPL_ROM`, `CG_ROM`, `BOOT_DISK`, `FDD1_DISK` |
+
+- `run_px68k_humanos.sh` 기본 `BOOT_DISK`는 `diskwork/bootdisk/x68000/HUMAN302.XDF`를 우선 사용합니다.
 
 ---
 
@@ -213,9 +216,16 @@ bash -n ./run_px68k_humanos.sh
 ├── RetroDeveloperEnvironmentDisktool/
 ├── RetroDeveloperEnvironmentMonitor/
 ├── Toolchain/
-│   ├── AppleII/
 │   ├── MSX/HITECH_TOOLCHAIN/
 │   └── x68000/
+├── Library/
+│   ├── AppleII/
+│   │   ├── apple2flat/
+│   │   └── souless_apple2/
+│   ├── MSX/
+│   │   └── ubox-msx-lib-1.2.0/
+│   └── x68000/
+│       └── X68KTutorials/
 ├── Examples/
 ├── diskwork/
 ├── specs/

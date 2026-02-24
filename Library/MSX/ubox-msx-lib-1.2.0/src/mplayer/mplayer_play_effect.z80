@@ -1,0 +1,17 @@
+.module mplayer
+
+.globl _mplayer_play_effect
+
+.globl _PLY_AKM_PLAYSOUNDEFFECT
+
+_mplayer_play_effect::
+	ld c, l
+	ld ix, #2
+	add ix, sp
+	ld b, 0 (ix)
+
+	call _PLY_AKM_PLAYSOUNDEFFECT
+
+	pop hl
+	inc sp
+	jp (hl)

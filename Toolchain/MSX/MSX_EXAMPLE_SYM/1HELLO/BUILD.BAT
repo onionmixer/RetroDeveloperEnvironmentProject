@@ -1,3 +1,0 @@
-make -fMAKEFILE CFG=1HELLO clean
-make -fMAKEFILE CFG=1HELLO
-pause

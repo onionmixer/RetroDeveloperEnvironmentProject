@@ -33,14 +33,14 @@
 - 파일 시스템: DOS 3.3
 - 프로그램 디스크 확장자: `.do` 또는 `.dsk`
 - 부팅 디스크:
-  - `diskwork/bootdisk/appleii/dos33.dsk`
+  - `diskwork/bootdisk/AppleII/dos33.dsk`
 
 ### 1.2 실행 스크립트
 
 - 기본 실행 스크립트:
   - `./run_applewin_dos33.sh`
 - 내부 기본 장착:
-  - D1: `diskwork/bootdisk/appleii/dos33.dsk`
+  - D1: `diskwork/bootdisk/AppleII/dos33.dsk`
   - D2: `Examples/Tutorial_apple_dos33_01/Tutorial_apple_dos33_01.do`
 
 ### 1.3 예제 개발 절차
@@ -98,7 +98,7 @@ dd if=HELLO of=HELLO_RAW bs=1 skip=58
 또는 직접 실행:
 ```bash
 ./Emulator/AppleWin/build/sa2 \
-  --d1 ./diskwork/bootdisk/appleii/dos33.dsk \
+  --d1 ./diskwork/bootdisk/AppleII/dos33.dsk \
   --d2 ./Examples/Tutorial_apple_dos33_01/Tutorial_apple_dos33_01.do
 ```
 
@@ -122,14 +122,14 @@ BRUN HELLO,D2
 - 파일 시스템: ProDOS
 - 프로그램 디스크 확장자: `.po`
 - 부팅 디스크(기본):
-  - `diskwork/bootdisk/appleii/prodos242.dsk`
+  - `diskwork/bootdisk/AppleII/prodos242.dsk`
 
 ### 2.2 실행 스크립트
 
 - 기본 실행 스크립트:
   - `./run_applewin_prodos.sh`
 - 내부 기본 장착:
-  - D1: `diskwork/bootdisk/appleii/prodos242.dsk`
+  - D1: `diskwork/bootdisk/AppleII/prodos242.dsk`
   - D2: `Examples/Tutorial_apple_prodos_01/Tutorial_apple_prodos_01.po`
 
 ### 2.3 예제 개발 절차
@@ -187,7 +187,7 @@ dd if=HELLO of=HELLO_RAW bs=1 skip=58
 또는 직접 실행:
 ```bash
 ./Emulator/AppleWin/build/sa2 \
-  --d1 ./diskwork/bootdisk/appleii/prodos242.dsk \
+  --d1 ./diskwork/bootdisk/AppleII/prodos242.dsk \
   --d2 ./Examples/Tutorial_apple_prodos_01/Tutorial_apple_prodos_01.po
 ```
 
@@ -255,7 +255,7 @@ rdedisktool info mydisk.po -v
 
 체크 항목:
 - `Emulator/AppleWin/build/sa2` 존재
-- `diskwork/bootdisk/appleii/dos33.dsk` 존재
+- `diskwork/bootdisk/AppleII/dos33.dsk` 존재
 - `Examples/Tutorial_apple_dos33_01/Tutorial_apple_dos33_01.do` 존재
 
 ### 4.2 run_applewin_prodos.sh
@@ -274,7 +274,7 @@ rdedisktool info mydisk.po -v
 
 체크 항목:
 - `Emulator/AppleWin/build/sa2` 존재
-- `diskwork/bootdisk/appleii/prodos242.dsk` 존재
+- `diskwork/bootdisk/AppleII/prodos242.dsk` 존재
 - `Examples/Tutorial_apple_prodos_01/Tutorial_apple_prodos_01.po` 존재
 
 ### 4.3 자주 발생하는 오류
@@ -364,7 +364,7 @@ cd ../../
 
 ## 7. Apple2Flat 프레임워크 분석 요약
 
-경로: `Toolchain/AppleII/apple2flat`
+경로: `Library/AppleII/apple2flat`
 
 ### 7.1 성격
 
@@ -389,12 +389,12 @@ cd ../../
 ### 7.3 빌드 전 주의사항 (중요)
 
 - `makefile.common`이 기본적으로 내부 경로 `./cc65/bin/{cc65,ca65,ld65,ar65}`를 기대합니다.
-- 현재 저장소에는 `Toolchain/AppleII/apple2flat/cc65/` 디렉터리가 없으므로, 기본값 그대로는 빌드가 실패합니다.
+- 현재 저장소에는 `Library/AppleII/apple2flat/cc65/` 디렉터리가 없으므로, 기본값 그대로는 빌드가 실패합니다.
 
 Linux에서 외부 cc65를 사용하는 권장 예시:
 
 ```bash
-cd Toolchain/AppleII/apple2flat
+cd Library/AppleII/apple2flat
 make \
   CC65="$(command -v cc65)" \
   CA65="$(command -v ca65)" \
@@ -405,7 +405,7 @@ make \
 테이프 타겟:
 
 ```bash
-cd Toolchain/AppleII/apple2flat
+cd Library/AppleII/apple2flat
 make tape \
   CC65="$(command -v cc65)" \
   CA65="$(command -v ca65)" \
@@ -436,4 +436,4 @@ make tape \
 - `DEVELOPER_COMMON_HOWTO.md`
 - `FLOPPY_IMAGE_OPERATION.md`
 - `RetroDeveloperEnvironmentProject_REQUIREMENTS.md`
-- `Toolchain/AppleII/apple2flat/readme.md`
+- `Library/AppleII/apple2flat/readme.md`

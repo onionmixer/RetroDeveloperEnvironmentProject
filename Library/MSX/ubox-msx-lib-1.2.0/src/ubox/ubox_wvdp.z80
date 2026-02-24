@@ -1,0 +1,8 @@
+.globl _ubox_wvdp
+
+WRITEVDP = 0x0047
+
+_ubox_wvdp::
+	ld c, a
+	ld b, l
+	jp WRITEVDP

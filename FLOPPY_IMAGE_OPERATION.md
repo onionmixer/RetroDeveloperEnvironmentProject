@@ -51,7 +51,7 @@
 
 - AppleWin의 `source/CmdLine.cpp:128-303`에서 `--d1`/`--d2` 및 슬롯 지정(`-s5d1`, `-s6d1` 등) 커맨드라인 인자를 파싱해 지정된 플로피 이미지를 각 드라이브에 미리 장착함
 - `help/CommandLine.html:14-48`에도 동일한 스위치가 문서화되어 있으며 `--d1` 입력 시 슬롯 6 드라이브 1에 장착되고 자동 전원이 켜지며, `--d2`는 드라이브 2에 해당
-- 실행 예 (Linux): `sa2 --d1 ./diskwork/bootdisk/appleii/dos33.dsk --d2 mydisk.do` → 지정한 이미지가 슬롯 6 드라이브 1, 2에 장착된 상태로 부팅됨 (`-s5d1` 등과 조합 가능)
+- 실행 예 (Linux): `sa2 --d1 ./diskwork/bootdisk/AppleII/dos33.dsk --d2 mydisk.do` → 지정한 이미지가 슬롯 6 드라이브 1, 2에 장착된 상태로 부팅됨 (`-s5d1` 등과 조합 가능)
 - `--d1-disconnected`/`--d2-disconnected`로 각 드라이브를 비워 둔 채 시작할 수 있음
 - 저장소 실행 스크립트:
   - `./run_applewin_dos33.sh`
@@ -74,7 +74,7 @@
 - 저장소 실행 스크립트:
   - `./run_px68k_humanos.sh`
 - 기본 부팅 경로(자동 탐색 후보):
-  - `./Emulator/x68000/px68k-onionmixer/HUMAN302.XDF`
+  - `./diskwork/bootdisk/x68000/HUMAN302.XDF`
   - `./Emulator/x68000/work.xdf`
 - 환경변수 오버라이드:
   - `PX68K`, `IPL_ROM`, `CG_ROM`, `BOOT_DISK`, `FDD1_DISK`
@@ -109,6 +109,10 @@ FAT Cluster Map:
   Cluster   4: FREE
   ...
 ```
+
+`info -v`에서는 bootdisk 보호 진단도 함께 확인할 수 있습니다.
+- `BootDisk`, `Profile`, `Confidence`, `ProtectionMode`, `Reason`
+- BPB/메타데이터가 비정상이라 핸들러 초기화에 실패하면 `Reason: invalid_bpb_or_filesystem_init_failed`로 표시됩니다.
 
 ### XSA 압축/해제 후 에뮬레이터 장착
 ```bash
@@ -187,6 +191,28 @@ rdedisktool add game.dsk ./save.dat GAMES/SAVE.DAT
 rdedisktool add appleii.dsk ./newprog.bin NEWPROG
 sa2 --d1 appleii.dsk
 ```
+
+### bootdisk 보호 모드(권장)
+기본값은 `strict`입니다.
+- `delete/mkdir/rmdir`는 bootdisk에서 차단됩니다.
+- `add`는 safe-add 검증(부트영역 보존 + 기존 파일 보존)을 통과할 때만 허용됩니다.
+
+```bash
+# 기본 strict 차단
+rdedisktool add ./diskwork/bootdisk/msx/msxdos23.dsk ./PATCH.BIN PATCH.BIN
+
+# 정책 확인
+rdedisktool info ./diskwork/bootdisk/msx/msxdos23.dsk -v
+
+# 의도적 override (주의해서 사용)
+rdedisktool --force-bootdisk add ./diskwork/bootdisk/msx/msxdos23.dsk ./PATCH.BIN PATCH.BIN
+```
+
+전역 옵션:
+- `--bootdisk-mode strict|warn|off`
+- `--force-bootdisk`
+- `--bootdisk-profile dos33|prodos|msxdos|human68k|unknown`
+- `--keep-backup` (저장 시 `.bak` 유지)
 
 ### DOS 3.3 바이너리 파일 추가 (로드 주소 지정)
 

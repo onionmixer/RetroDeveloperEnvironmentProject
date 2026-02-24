@@ -4124,7 +4124,7 @@ int _heap_size = 256 * 1024;    // 256KB 힙
 ### 튜토리얼 / 강좌
 - [X68000 Programming Tutorial](https://federicotech.wordpress.com/2021/12/18/x68000-programming-chapter-2-1-setting-up-the-ide-lydux-flavour/) - IDE 설정 가이드 (Lydux 방식)
 - [X68KTutorials GitHub](https://github.com/FedericoTech/X68KTutorials) - X68000 프로그래밍 튜토리얼 예제 코드
-- 로컬 복사본: `../../Toolchain/x68000/X68KTutorials`
+- 로컬 복사본: `../../Library/x68000/X68KTutorials`
 - [NFG Forums - X68000 Development](https://nfggames.com/forum2/index.php?topic=5417.0) - X68000 개발 관련 포럼 스레드
 
 ### 에뮬레이터
