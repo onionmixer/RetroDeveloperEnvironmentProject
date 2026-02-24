@@ -7,5 +7,8 @@ resource_extra/zxcc/*
 # large binary archives
 Toolchain/x68000/toolchain/elf2x68k.tar.bz2
 
+# Claude Code
+CLAUDE.md
+
 # ignore only PNG files in repository root
 /*.png
