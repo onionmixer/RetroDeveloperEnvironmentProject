@@ -1,0 +1,4 @@
+run68:Human68k形式のパス名に変換できないため、PSP内の実行ファイル名を"A:\PROG.X"に変更します。
+Hello, X68000 Tutorial!
+Current drive: A:\
+Built with m68k-xelf-gcc (elf2x68k).

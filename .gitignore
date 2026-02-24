@@ -1,0 +1,6 @@
+# resource_extra: keep only zxcc-debian as tracked content
+resource_extra/*
+!resource_extra/zxcc/
+resource_extra/zxcc/*
+!resource_extra/zxcc/zxcc-debian/
+

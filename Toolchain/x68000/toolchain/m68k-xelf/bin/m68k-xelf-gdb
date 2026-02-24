@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+interp=""
+remote=""
+param=("$@")
+for ((i=0; i<${#param[@]}; i++)); do
+  case ${param[$i]} in
+    --interpreter=*)
+      interp=${param[$i]#--interpreter=}
+      ;;
+    -ex)
+      case ${param[$i+1]} in
+        'target '*)
+          remote=${param[$i+1]}
+      esac
+  esac
+done
+
+if [[ -z "${interp}" && -z "${remote}" && $# -gt 0 ]]; then
+  m68k-elf-gdb -ex 'target remote :54321' "$@"
+else
+  m68k-elf-gdb "$@"
+fi

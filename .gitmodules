@@ -1,0 +1,45 @@
+[submodule "Emulator/AppleWin"]
+	path = Emulator/AppleWin
+	url = https://github.com/onionmixer/AppleWin.git
+[submodule "Emulator/openMSX"]
+	path = Emulator/openMSX
+	url = https://github.com/onionmixer/openMSX.git
+[submodule "Emulator/x68000/mame"]
+	path = Emulator/x68000/mame
+	url = https://github.com/mamedev/mame.git
+[submodule "Emulator/x68000/px68k-onionmixer"]
+	path = Emulator/x68000/px68k-onionmixer
+	url = https://github.com/onionmixer/px68k-onionmixer.git
+[submodule "Emulator/x68000/run68x"]
+	path = Emulator/x68000/run68x
+	url = https://github.com/kg68k/run68x.git
+[submodule "RetroDeveloperEnvironmentDisktool"]
+	path = RetroDeveloperEnvironmentDisktool
+	url = https://github.com/onionmixer/RetroDeveloperEnvironmentDisktool.git
+[submodule "RetroDeveloperEnvironmentMonitor"]
+	path = RetroDeveloperEnvironmentMonitor
+	url = https://github.com/onionmixer/RetroDeveloperEnvironmentMonitor.git
+[submodule "Toolchain/AppleII/apple2flat"]
+	path = Toolchain/AppleII/apple2flat
+	url = https://github.com/bbbradsmith/apple2flat.git
+[submodule "Toolchain/MSX/HITECH_TOOLCHAIN"]
+	path = Toolchain/MSX/HITECH_TOOLCHAIN
+	url = https://github.com/onionmixer/HITECH_TOOLCHAIN.git
+[submodule "Toolchain/x68000/X68KTutorials"]
+	path = Toolchain/x68000/X68KTutorials
+	url = https://github.com/FedericoTech/X68KTutorials.git
+[submodule "resource/x68000/InsideX68000-errata"]
+	path = resource/x68000/InsideX68000-errata
+	url = https://github.com/kg68k/InsideX68000-errata.git
+[submodule "resource/x68000/X68KTutorials"]
+	path = resource/x68000/X68KTutorials
+	url = https://github.com/FedericoTech/X68KTutorials.git
+[submodule "resource/x68000/x68k_xsp"]
+	path = resource/x68000/x68k_xsp
+	url = https://github.com/yosshin4004/x68k_xsp
+[submodule "resource/x68000/xdev68k"]
+	path = resource/x68000/xdev68k
+	url = https://github.com/yosshin4004/xdev68k.git
+[submodule "resource_extra/zxcc/zxcc-debian"]
+	path = resource_extra/zxcc/zxcc-debian
+	url = https://github.com/onionmixer/zxcc-debian.git

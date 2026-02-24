@@ -1,0 +1,24 @@
+Machine type is Z80
+
+/tmp/htr/w.r6gqqx/ROM.obj
+                text         4000      11c
+/tmp/htr/w.r6gqqx/MAIN_HE.obj
+                text         411c       5d
+/tmp/htr/w.r6gqqx/APP.obj
+                text         4179       22
+
+/mnt/USERS/onion/DATA_ORIGN/Workspace/05_RetroDeveloperEnvironmentProject/Toolchain/MSX/HITECH_TOOLCHAIN/lib/sharksym/LIBCMSXR.LIB
+CSV.O           text         419b       28
+
+TOTAL		Name         Link     Load   Length
+		(abs)           0        0        0
+		text         4000     4000      1c3
+
+                                  Symbol Table
+
+__Htext          text  41C3  __Ltext          text  4000
+_main            text  4179  _rom_debug_loop  text  415E
+_rom_print_hello text  411C  _rom_wait_loop   text  4176
+_start           text  4000  cret             text  41A7
+csv              text  419B  indir            text  41AE
+ncsv             text  41AF  

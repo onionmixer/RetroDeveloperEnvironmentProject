@@ -1,0 +1,3 @@
+./px68k --iplrom /home/onion/Workspace/x68000/px68k/iplrom.dat --cgrom /home/onion/Workspace/x68000/px68k/cgrom.dat --fdd0 /home/onion/Workspace/x68000/px68k/HUMAN302.XDF
+
+https://nfggames.com/X68000/index.php/Misc/BIOS/
