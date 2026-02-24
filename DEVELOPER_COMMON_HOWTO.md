@@ -96,7 +96,7 @@ Apple II 라이브러리 참고:
 
 ### 2.3-a MSX ROM mode(요약)
 
-- ROM mode(`app-mode=0`, `rom-mode=1|2`)의 Linux 뱅킹툴/패커 상세는 `DEVELOPER_MSX_HOWTO.md`의 `3.4 ROM mode 빌드(뱅킹툴 + 패커) 상세`를 참고합니다.
+- ROM mode(`app-mode=0`, `rom-mode=1|2`)의 Linux 뱅킹툴/패커 상세는 `DEVELOPER_MSX_HOWTO.md`의 ROM 모드 섹션을 참고합니다.
 - 권장 예제 경로:
   - `Examples/Tutorial_msx_hitech_rom_02`
 - 핵심 체크:
@@ -107,7 +107,12 @@ Apple II 라이브러리 참고:
 - `run_applewin_dos33.sh`
 - `run_applewin_prodos.sh`
 - `run_openmsx_msxdos2.sh`
+- `run_openmsx_rom.sh`
 - `run_px68k_humanos.sh`
+- `run_applewin_dos33_diskaddtest.sh`
+- `run_applewin_prodos_diskaddtest.sh`
+- `run_openmsx_msxdos2_diskaddtest.sh`
+- `run_px68k_humanos_diskaddtest.sh`
 
 ---
 
@@ -133,7 +138,12 @@ cl65 --version
 bash -n ./run_applewin_dos33.sh
 bash -n ./run_applewin_prodos.sh
 bash -n ./run_openmsx_msxdos2.sh
+bash -n ./run_openmsx_rom.sh
 bash -n ./run_px68k_humanos.sh
+bash -n ./run_applewin_dos33_diskaddtest.sh
+bash -n ./run_applewin_prodos_diskaddtest.sh
+bash -n ./run_openmsx_msxdos2_diskaddtest.sh
+bash -n ./run_px68k_humanos_diskaddtest.sh
 ```
 
 권장: 위 검증 결과를 작업 로그에 기록하고, 누락 항목은 즉시 보완 후 개발을 진행합니다.
@@ -270,6 +280,14 @@ make
 - 튜토리얼 산출물 시그니처/헤더 검증
   - MSX z88dk ROM: `AB` 시그니처
   - MSX Hi-Tech ROM: `ROM ` 시그니처
+- bootdisk 보호 회귀 검증
+  - `cd RetroDeveloperEnvironmentDisktool && tests/test_bootdisk_guard_all.sh`
+  - `cd RetroDeveloperEnvironmentDisktool && tests/test_system_file_delete_prompt.sh`
+- 실환경 disk-add smoke 4종 통과
+  - `./run_applewin_dos33_diskaddtest.sh`
+  - `./run_applewin_prodos_diskaddtest.sh`
+  - `./run_openmsx_msxdos2_diskaddtest.sh`
+  - `./run_px68k_humanos_diskaddtest.sh`
 
 ---
 
@@ -305,7 +323,7 @@ make
 
 ## 10. 권장 문서 사용 순서
 
-1. `RetroDeveloperEnvironmentProject_REQUIREMENTS.md`
+1. `REQUIREMENTS.md`
 2. `DEVELOPER_COMMON_HOWTO.md` (현재 문서)
 3. 대상 플랫폼 HOWTO
    - `DEVELOPER_AppleII_HOWTO.md`
@@ -325,7 +343,7 @@ make
 
 ---
 
-## 11. MSX generated Makefile 검증(공통 게이트)
+## 12. MSX generated Makefile 검증(공통 게이트)
 
 MSX Hi-Tech C 경로에서 CFG 기반 generated `.MK` 파이프라인 회귀는 아래 스크립트로 수행합니다.
 

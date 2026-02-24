@@ -109,22 +109,8 @@ cd Examples/Tutorial_msx_hitech_rom_02
 ./compile.sh all
 ```
 
-### 4.4 ROM 튜토리얼(03)
-
-```bash
-cd Examples/Tutorial_msx_hitech_rom_03
-./compile.sh all
-```
-
-개별 실행 스크립트:
-- `run_openmsx_0hello_rom.sh`
-- `run_openmsx_0hello_stay_rom.sh`
-- `run_openmsx_0hello_stay_diag_rom.sh`
-- `run_openmsx_0bgm_rom.sh`
-- `run_openmsx_0hangul_rom.sh`
-- `run_openmsx_0hanime_rom.sh`
-- `run_openmsx_0tetris_rom.sh`
-- 전체: `run_openmsx_all.sh`
+ROM 실행 스크립트:
+- `run_openmsx_rom.sh`
 
 ## 5. run_openmsx_msxdos2.sh 사용
 
@@ -148,7 +134,6 @@ cd Examples/Tutorial_msx_hitech_rom_03
 - `specs/MSX_TEST_WORK_REPORT.md`
 - `Examples/Tutorial_msx_z88dk_01/README.md`
 - `Examples/Tutorial_msx_z88dk_rom_01/README.md`
-- `Examples/Tutorial_msx_hitech_01/README.md`
+- `Examples/Tutorial_msx_hitech_01/compile.sh`
 - `Examples/Tutorial_msx_hitech_rom_01/README.md`
 - `Examples/Tutorial_msx_hitech_rom_02/README.md`
-- `Examples/Tutorial_msx_hitech_rom_03/README.md`

@@ -145,18 +145,19 @@ make run-hello_file   # hello_file.x 실행
 
 ### 3.3 생성 관련 주의사항
 
-현재 환경 실측 기준으로 `create -f xdf/dim`은 파일 생성 자체는 가능하지만,
-파일시스템이 `Unknown`으로 표시될 수 있습니다.
+현재 `rdedisktool`은 X68000 생성 시 Human68k 파일시스템 초기화를 정식 지원합니다.
+`--fs human68k`를 명시해 생성하는 것을 권장합니다.
 
 예시:
 ```bash
-./RetroDeveloperEnvironmentDisktool/build/rdedisktool create /tmp/newdisk.xdf -f xdf --force
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool create /tmp/newdisk.xdf -f xdf --fs human68k -n WORKDISK --force
+./RetroDeveloperEnvironmentDisktool/build/rdedisktool create /tmp/newdisk.dim -f dim --fs human68k -n WORKDISK --force
 ./RetroDeveloperEnvironmentDisktool/build/rdedisktool info /tmp/newdisk.xdf
 ```
 
 권장:
 - 실제 Human68k 실행용 디스크는 이미 준비된 부팅/작업 디스크(`diskwork/bootdisk/x68000/HUMAN302.XDF`, `Emulator/x68000/work.xdf`)를 기준으로 운용합니다.
-- 빈 이미지 생성 직후 파일 추가가 실패하면(`Not enough space`) 파일시스템/초기화 상태를 먼저 확인합니다.
+- 새 이미지에 파일을 넣기 전 `info`/`list`로 파일시스템과 여유 공간을 먼저 확인합니다.
 
 ---
 

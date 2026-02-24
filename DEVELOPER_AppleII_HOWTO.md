@@ -21,7 +21,7 @@
   - `cl65` (cc65)
 
 핵심 원칙:
-- 컴파일 결과(`HELLO`)는 AppleSingle 헤더를 포함하므로, 디스크에 넣기 전 `HELLO_RAW`로 헤더 제거가 필요합니다.
+- 튜토리얼 디렉터리(`Tutorial_apple_dos33_01`, `Tutorial_apple_prodos_01`)는 `compile.sh`가 최종 산출물을 `HELLO`(raw payload)로 정리합니다.
 - `rdedisktool add` 시 Apple II 바이너리는 보통 `--type B --addr 0x0803`를 지정합니다.
 
 ---
@@ -71,9 +71,10 @@ int main(void)
 cl65 -t apple2 -o HELLO hello.c
 ```
 
-AppleSingle 헤더 제거(58바이트):
+AppleSingle 헤더 제거 후 `HELLO`를 raw payload로 유지:
 ```bash
-dd if=HELLO of=HELLO_RAW bs=1 skip=58
+tail -c +59 HELLO > HELLO.tmp
+mv HELLO.tmp HELLO
 ```
 
 디스크 생성:
@@ -85,7 +86,7 @@ dd if=HELLO of=HELLO_RAW bs=1 skip=58
 바이너리 추가:
 ```bash
 ../../RetroDeveloperEnvironmentDisktool/build/rdedisktool \
-  add Tutorial_apple_dos33_01.do ./HELLO_RAW HELLO --type B --addr 0x0803
+  add Tutorial_apple_dos33_01.do ./HELLO HELLO --type B --addr 0x0803
 ```
 
 ### 1.4 에뮬레이터 실행
@@ -160,9 +161,10 @@ int main(void)
 cl65 -t apple2 -o HELLO hello.c
 ```
 
-AppleSingle 헤더 제거:
+AppleSingle 헤더 제거 후 `HELLO`를 raw payload로 유지:
 ```bash
-dd if=HELLO of=HELLO_RAW bs=1 skip=58
+tail -c +59 HELLO > HELLO.tmp
+mv HELLO.tmp HELLO
 ```
 
 디스크 생성(볼륨명 지정):
@@ -174,7 +176,7 @@ dd if=HELLO of=HELLO_RAW bs=1 skip=58
 바이너리 추가:
 ```bash
 ../../RetroDeveloperEnvironmentDisktool/build/rdedisktool \
-  add Tutorial_apple_prodos_01.po ./HELLO_RAW HELLO --type B --addr 0x0803
+  add Tutorial_apple_prodos_01.po ./HELLO HELLO --type B --addr 0x0803
 ```
 
 ### 2.4 에뮬레이터 실행
@@ -223,8 +225,8 @@ rdedisktool create mydisk.po -f po --fs prodos -n MYDISK
 
 파일 추가:
 ```bash
-rdedisktool add mydisk.do ./HELLO_RAW HELLO --type B --addr 0x0803
-rdedisktool add mydisk.po ./HELLO_RAW HELLO --type B --addr 0x0803
+rdedisktool add mydisk.do ./HELLO HELLO --type B --addr 0x0803
+rdedisktool add mydisk.po ./HELLO HELLO --type B --addr 0x0803
 ```
 
 검증:
@@ -299,9 +301,9 @@ cat > hello.c << 'END'
 int main(void){ printf("hello world\n"); return 0; }
 END
 cl65 -t apple2 -o HELLO hello.c
-dd if=HELLO of=HELLO_RAW bs=1 skip=58
+tail -c +59 HELLO > HELLO.tmp && mv HELLO.tmp HELLO
 ../../RetroDeveloperEnvironmentDisktool/build/rdedisktool create Tutorial_apple_dos33_01.do -f do --fs dos33
-../../RetroDeveloperEnvironmentDisktool/build/rdedisktool add Tutorial_apple_dos33_01.do ./HELLO_RAW HELLO --type B --addr 0x0803
+../../RetroDeveloperEnvironmentDisktool/build/rdedisktool add Tutorial_apple_dos33_01.do ./HELLO HELLO --type B --addr 0x0803
 cd ../../
 ./run_applewin_dos33.sh
 ```
@@ -315,9 +317,9 @@ cat > hello.c << 'END'
 int main(void){ printf("hello world\n"); return 0; }
 END
 cl65 -t apple2 -o HELLO hello.c
-dd if=HELLO of=HELLO_RAW bs=1 skip=58
+tail -c +59 HELLO > HELLO.tmp && mv HELLO.tmp HELLO
 ../../RetroDeveloperEnvironmentDisktool/build/rdedisktool create Tutorial_apple_prodos_01.po -f po --fs prodos -n TUTORIAL01
-../../RetroDeveloperEnvironmentDisktool/build/rdedisktool add Tutorial_apple_prodos_01.po ./HELLO_RAW HELLO --type B --addr 0x0803
+../../RetroDeveloperEnvironmentDisktool/build/rdedisktool add Tutorial_apple_prodos_01.po ./HELLO HELLO --type B --addr 0x0803
 cd ../../
 ./run_applewin_prodos.sh
 ```
@@ -333,7 +335,7 @@ cd ../../
 | 0 | 문서 확인 | `DEVELOPER_COMMON_HOWTO.md`, `FLOPPY_IMAGE_OPERATION.md` |
 | 1 | 대상 선택 | Apple II DOS 3.3 |
 | 2 | 작업 폴더 | `Examples/Tutorial_apple_dos33_01` |
-| 3 | 컴파일 | `cl65 -t apple2 -o HELLO hello.c` + `dd ... skip=58` |
+| 3 | 컴파일 | `cl65 -t apple2 -o HELLO hello.c` + `tail -c +59 ...` |
 | 4 | 디스크 생성 | `rdedisktool create ... -f do --fs dos33` |
 | 5 | 바이너리 추가 | `rdedisktool add ... --type B --addr 0x0803` |
 | 6 | 에뮬레이터 실행 | `./run_applewin_dos33.sh` |
@@ -346,7 +348,7 @@ cd ../../
 | 0 | 문서 확인 | `DEVELOPER_COMMON_HOWTO.md`, `FLOPPY_IMAGE_OPERATION.md` |
 | 1 | 대상 선택 | Apple II ProDOS |
 | 2 | 작업 폴더 | `Examples/Tutorial_apple_prodos_01` |
-| 3 | 컴파일 | `cl65 -t apple2 -o HELLO hello.c` + `dd ... skip=58` |
+| 3 | 컴파일 | `cl65 -t apple2 -o HELLO hello.c` + `tail -c +59 ...` |
 | 4 | 디스크 생성 | `rdedisktool create ... -f po --fs prodos -n TUTORIAL01` |
 | 5 | 바이너리 추가 | `rdedisktool add ... --type B --addr 0x0803` |
 | 6 | 에뮬레이터 실행 | `./run_applewin_prodos.sh` |
@@ -435,5 +437,5 @@ make tape \
 - `DEVELOPER_MSX_HOWTO.md`
 - `DEVELOPER_COMMON_HOWTO.md`
 - `FLOPPY_IMAGE_OPERATION.md`
-- `RetroDeveloperEnvironmentProject_REQUIREMENTS.md`
+- `REQUIREMENTS.md`
 - `Library/AppleII/apple2flat/readme.md`

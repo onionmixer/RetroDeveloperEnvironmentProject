@@ -6,6 +6,11 @@
 |------|------|
 | `-v, --verbose` | 상세 출력 활성화 |
 | `-q, --quiet` | 불필요한 출력 억제 |
+| `--bootdisk-mode <strict\|warn\|off>` | bootdisk 변경 보호 모드 (기본 `strict`) |
+| `--force-bootdisk` | bootdisk 변경 정책을 의도적으로 우회 |
+| `--force-system-file` | boot-critical 시스템 파일 삭제 시 확인 프롬프트 없이 강제 삭제 |
+| `--bootdisk-profile <dos33\|prodos\|msxdos\|human68k\|unknown>` | bootdisk 프로파일 강제 지정 |
+| `--keep-backup` | 이미지 저장 시 `.bak` 백업 보존 |
 | `-h, --help` | 도움말 표시 |
 | `-V, --version` | 버전 정보 표시 |
 
@@ -196,6 +201,8 @@ sa2 --d1 appleii.dsk
 기본값은 `strict`입니다.
 - `delete/mkdir/rmdir`는 bootdisk에서 차단됩니다.
 - `add`는 safe-add 검증(부트영역 보존 + 기존 파일 보존)을 통과할 때만 허용됩니다.
+- boot-critical 시스템 파일 삭제 요청 시 yes/no 프롬프트가 표시됩니다.
+  - `--force-system-file` 사용 시 프롬프트 없이 즉시 삭제됩니다(추가 확인 없음).
 
 ```bash
 # 기본 strict 차단
@@ -211,8 +218,25 @@ rdedisktool --force-bootdisk add ./diskwork/bootdisk/msx/msxdos23.dsk ./PATCH.BI
 전역 옵션:
 - `--bootdisk-mode strict|warn|off`
 - `--force-bootdisk`
+- `--force-system-file`
 - `--bootdisk-profile dos33|prodos|msxdos|human68k|unknown`
 - `--keep-backup` (저장 시 `.bak` 유지)
+
+### Bootdisk Disk-Add Smoke 테스트 (실환경)
+
+아래 스크립트는 공통적으로 "bootdisk 복사본 생성 -> rdedisktool add -> 에뮬레이터 부팅" 흐름을 수행합니다.
+
+```bash
+./run_applewin_dos33_diskaddtest.sh
+./run_applewin_prodos_diskaddtest.sh
+./run_openmsx_msxdos2_diskaddtest.sh
+./run_px68k_humanos_diskaddtest.sh
+```
+
+운영 기준:
+- 테스트는 단일 드라이브만 사용하여 bootdisk 파일 제어 영향만 검증합니다.
+- DOS 3.3 diskaddtest는 복사 bootdisk에서 비필수 파일 삭제 후 add/boot를 검증합니다.
+- 최근 기준 결과: 4/4 통과.
 
 ### DOS 3.3 바이너리 파일 추가 (로드 주소 지정)
 
@@ -293,7 +317,7 @@ rdedisktool convert game.dim game.xdf -f xdf
 | XDF | DIM | X68000 포맷 변환 |
 | DIM | XDF | X68000 포맷 변환 |
 
-### 디렉토리 관리 (ProDOS, MSX-DOS)
+### 디렉토리 관리 (ProDOS, MSX-DOS, Human68k)
 
 > **참고**: DOS 3.3은 서브디렉토리를 지원하지 않습니다.
 
@@ -335,6 +359,7 @@ rdedisktool dump disk.dsk --track 0 --sector 0 --side 1
 | MSX-DOS/FAT12 | `0xE5` | 파일명 첫 바이트 | 삭제된 파일 엔트리 |
 | DOS 3.3 | `0xFF` | T/S 리스트 트랙 필드 | 삭제된 카탈로그 엔트리 |
 | ProDOS | `0x00` | 스토리지 타입 니블 | 삭제된 엔트리 |
+| Human68k | `0xE5` | 파일명 첫 바이트 | 삭제된 파일 엔트리 |
 
 > **참고**: 이러한 마커는 정상이며, 디스크 공간은 재사용 가능합니다.
 
