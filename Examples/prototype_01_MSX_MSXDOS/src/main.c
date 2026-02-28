@@ -2,11 +2,14 @@
 #include "help.h"
 #include "logic.h"
 #include "render.h"
+#include "monster.h"
 
 #include <ctype.h>
 #include <conio.h>
 #include <stdio.h>
 #include <string.h>
+
+static unsigned char move_counter;
 
 static void set_box_items_message(char *out, unsigned int out_sz, const BoxMsx *box)
 {
@@ -32,6 +35,8 @@ int main(void)
 
     logic_init(&g);
     help_init(&help);
+    monster_init_room(g.room);
+    move_counter = 0;
     render_set_status(&g, "Prototype 01 MSX (12x7)");
 
     while (g.running) {
@@ -91,7 +96,32 @@ int main(void)
             unsigned char ty = (unsigned char)((int)g.y + dy);
 
             if (mv == MOVE_OK) {
-                render_set_status(&g, "Moved.");
+                unsigned char hit;
+                char msg[80];
+
+                hit = monster_check_collision(g.room, g.x, g.y);
+                if (hit) {
+                    sprintf(msg, "Encountered %s!",
+                            g_monster_names[hit - 1]);
+                    render_set_status(&g, msg);
+                } else {
+                    render_set_status(&g, "Moved.");
+                }
+
+                move_counter++;
+                if (move_counter >= 2) {
+                    move_counter = 0;
+                    monster_update_all(g.room, g.x, g.y);
+                    if (!hit) {
+                        hit = monster_check_collision(g.room,
+                                                     g.x, g.y);
+                        if (hit) {
+                            sprintf(msg, "Encountered %s!",
+                                    g_monster_names[hit - 1]);
+                            render_set_status(&g, msg);
+                        }
+                    }
+                }
             } else if (mv == MOVE_BLOCKED) {
                 render_set_status(&g, "Blocked.");
             } else if (mv == MOVE_DOOR_PENDING) {
@@ -104,8 +134,11 @@ int main(void)
                     else
                         sprintf(msg, "Enter door?");
                     if (render_prompt_yes_no(&g, msg)) {
-                        if (logic_door_transition(&g, idx)) render_set_status(&g, "Door transition ok.");
-                        else render_set_status(&g, "Door transition failed.");
+                        if (logic_door_transition(&g, idx)) {
+                            monster_init_room(g.room);
+                            move_counter = 0;
+                            render_set_status(&g, "Door transition ok.");
+                        } else render_set_status(&g, "Door transition failed.");
                     } else {
                         render_set_status(&g, "Door cancelled.");
                     }
@@ -116,8 +149,11 @@ int main(void)
                     const StairMsx *s = &g_stairs[g.room][idx];
                     const char *q = s->type == 0 ? "Descend stair?" : "Ascend stair?";
                     if (render_prompt_yes_no(&g, q)) {
-                        if (logic_stair_transition(&g, idx)) render_set_status(&g, "Stair transition ok.");
-                        else render_set_status(&g, "Stair transition failed.");
+                        if (logic_stair_transition(&g, idx)) {
+                            monster_init_room(g.room);
+                            move_counter = 0;
+                            render_set_status(&g, "Stair transition ok.");
+                        } else render_set_status(&g, "Stair transition failed.");
                     } else {
                         render_set_status(&g, "Stair cancelled.");
                     }

@@ -73,7 +73,8 @@ build() {
         "$SCRIPT_DIR/src/help.c" \
         "$SCRIPT_DIR/src/logic.c" \
         "$SCRIPT_DIR/src/render.c" \
-        "$SCRIPT_DIR/src/room_data.c"
+        "$SCRIPT_DIR/src/room_data.c" \
+        "$SCRIPT_DIR/src/monster.c"
 
     local com_path
     com_path="$(resolve_com_path)"

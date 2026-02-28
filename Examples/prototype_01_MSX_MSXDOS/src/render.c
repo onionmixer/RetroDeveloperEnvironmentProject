@@ -1,5 +1,6 @@
 #include "render.h"
 #include "logic.h"
+#include "monster.h"
 
 #include <conio.h>
 #include <ctype.h>
@@ -46,6 +47,17 @@ void render_draw(const GameState *g)
             unsigned char wy = g->cam_y + row;
             char ch = logic_get_tile(g->room, wx, wy);
             if (wx == g->x && wy == g->y) ch = '!';
+            else {
+                unsigned char mi, mcnt;
+                mcnt = g_monster_count[g->room];
+                for (mi = 0; mi < mcnt; mi++) {
+                    if (g_monsters_rt[mi].x == wx &&
+                        g_monsters_rt[mi].y == wy) {
+                        ch = '$';
+                        break;
+                    }
+                }
+            }
             line[col] = ch;
         }
         line[VIEW_W] = '\0';
