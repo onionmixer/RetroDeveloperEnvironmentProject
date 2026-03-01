@@ -4,8 +4,6 @@
 #include "monster.h"
 #include "input.h"
 #include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 /*
  * Tile pattern buffer loaded from external TILES file.
@@ -14,6 +12,9 @@
  */
 #define TILE_BUFFER ((const unsigned char *)0x1C88)
 static unsigned char g_loaded_tileset = 0xFF;
+
+/* Direct ProDOS MLI file loader (in prodos_prefix.s) */
+unsigned char __fastcall__ prodos_load_tileset(unsigned char tileset_id);
 
 /* ========== HGR row address lookup table (192 entries x 2 bytes = 384 bytes) ========== */
 static const unsigned int hgr_row[192] = {
@@ -232,24 +233,9 @@ static const unsigned char *tile_code_to_pattern(TileCode code,
 
 void render_load_tileset(unsigned char tileset_id)
 {
-    char fname[7];
-    int fd;
-
     if (tileset_id == g_loaded_tileset) return;
 
-    /* Build filename: "TILES0" .. "TILES9" */
-    fname[0] = 'T';
-    fname[1] = 'I';
-    fname[2] = 'L';
-    fname[3] = 'E';
-    fname[4] = 'S';
-    fname[5] = '0' + tileset_id;
-    fname[6] = '\0';
-
-    fd = open(fname, O_RDONLY);
-    if (fd >= 0) {
-        read(fd, (void *)0x1C88, 72);
-        close(fd);
+    if (prodos_load_tileset(tileset_id)) {
         g_loaded_tileset = tileset_id;
     }
     /* On failure, keep previous tileset */

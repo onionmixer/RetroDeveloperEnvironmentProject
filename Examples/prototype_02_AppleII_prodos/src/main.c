@@ -6,17 +6,25 @@
 #include "help.h"
 #include "room_data.h"
 
+/* Defined in prodos_prefix.s */
+void set_prefix_from_boot_device(void);
+
 void main(void)
 {
     GameState st;
     unsigned char move_counter = 0;
 
+    set_prefix_from_boot_device();
+
+    /* Load tileset BEFORE room data: ProDOS I/O buffer ($0800) overlaps
+       GRID_BUFFER ($0900), so decompress room last to overwrite any corruption. */
+    render_load_tileset(g_rooms[0].tileset_id);
     monster_init_all();
     logic_init(&st);
-    render_load_tileset(g_rooms[st.room].tileset_id);
 
     render_init();
     render_set_status("Ready.");
+
     logic_update_camera(&st);
     render_redraw_all(&st);
 

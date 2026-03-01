@@ -1,5 +1,5 @@
 # Build artifacts
-HELLO
-HELLO.tmp
+PROTO02
+PROTO02.tmp
 build/
 src/*.o

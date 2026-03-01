@@ -1,7 +1,5 @@
 #include "logic.h"
 #include "room_data.h"
-#include <fcntl.h>
-#include <unistd.h>
 #include <string.h>
 
 /*
@@ -17,7 +15,9 @@
  * Size: 816 bytes ($1CD0-$1FFF).
  */
 #define FILE_BUFFER ((unsigned char *)0x1CD0)
-#define FILE_BUFFER_SIZE 816
+
+/* Direct ProDOS MLI file loader (in prodos_prefix.s) */
+unsigned int __fastcall__ prodos_load_room(unsigned char room);
 
 static unsigned char g_loaded_room = 0xFF;
 
@@ -41,30 +41,15 @@ static void rle_decompress(const unsigned char *src, unsigned int src_len,
 
 void logic_decompress_room(unsigned char room)
 {
-    char fname[7];
-    int fd;
-    int n;
+    unsigned int n;
 
     if (room == g_loaded_room) return;
 
-    /* Build filename: "ROOM00" .. "ROOM99" */
-    fname[0] = 'R';
-    fname[1] = 'O';
-    fname[2] = 'O';
-    fname[3] = 'M';
-    fname[4] = '0' + (room / 10);
-    fname[5] = '0' + (room % 10);
-    fname[6] = '\0';
-
-    fd = open(fname, O_RDONLY);
-    if (fd >= 0) {
-        n = read(fd, FILE_BUFFER, FILE_BUFFER_SIZE);
-        close(fd);
-        if (n > 0) {
-            rle_decompress(FILE_BUFFER, (unsigned int)n, GRID_BUFFER);
-            g_loaded_room = room;
-            return;
-        }
+    n = prodos_load_room(room);
+    if (n > 0) {
+        rle_decompress(FILE_BUFFER, n, GRID_BUFFER);
+        g_loaded_room = room;
+        return;
     }
 
     /* Fallback: fill with walls */

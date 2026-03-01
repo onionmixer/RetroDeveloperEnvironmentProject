@@ -31,7 +31,7 @@ first_existing_exec() {
 APPLEWIN="${APPLEWIN:-}"
 BOOT_DISK="${BOOT_DISK:-}"
 PROGRAM_DISK="${PROGRAM_DISK:-$SCRIPT_DIR/build/prototype_02_appleii_prodos.po}"
-PROGRAM_NAME="${PROGRAM_NAME:-HELLO}"
+PROGRAM_NAME="${PROGRAM_NAME:-PROTO02}"
 AUTO_BUILD="${AUTO_BUILD:-0}"
 
 if [[ -n "$APPLEWIN" && -f "$APPLEWIN" ]]; then

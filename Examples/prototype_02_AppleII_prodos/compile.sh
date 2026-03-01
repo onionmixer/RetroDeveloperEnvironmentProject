@@ -4,8 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
-PROGRAM_NAME="${PROGRAM_NAME:-HELLO}"
-PROGRAM_FILE="$SCRIPT_DIR/HELLO"
+PROGRAM_NAME="${PROGRAM_NAME:-PROTO02}"
+PROGRAM_FILE="$SCRIPT_DIR/PROTO02"
 DISK_IMAGE="${DISK_IMAGE:-$BUILD_DIR/prototype_02_appleii_prodos.po}"
 RDEDISKTOOL="${RDEDISKTOOL:-}"
 PROGRAM_DISK_TEMPLATE="${PROGRAM_DISK_TEMPLATE:-}"
@@ -35,7 +35,7 @@ first_existing_exec() {
 }
 
 clean() {
-  rm -f HELLO HELLO.tmp
+  rm -f PROTO02 PROTO02.tmp
   rm -rf "$BUILD_DIR"
 }
 
@@ -56,17 +56,16 @@ build() {
   gen_data
   gen_tileset
 
-  echo "[1/3] Building HELLO"
-  cl65 -t apple2 -C src/apple2-hgr-ext.cfg -O -o HELLO \
-    /usr/share/cc65/lib/apple2-iobuf-0800.o \
+  echo "[1/3] Building PROTO02"
+  cl65 -t apple2 -C src/apple2-hgr-ext.cfg -O -o PROTO02 \
     src/main.c src/render.c src/logic.c src/monster.c \
-    src/input.c src/help.c src/room_data.c
+    src/input.c src/help.c src/room_data.c src/prodos_prefix.s
 
   echo "[2/3] Stripping AppleSingle header"
-  tail -c +59 HELLO > HELLO.tmp
-  mv HELLO.tmp HELLO
+  tail -c +59 PROTO02 > PROTO02.tmp
+  mv PROTO02.tmp PROTO02
 
-  echo "Built: $SCRIPT_DIR/HELLO ($(wc -c < HELLO) bytes)"
+  echo "Built: $SCRIPT_DIR/PROTO02 ($(wc -c < PROTO02) bytes)"
 }
 
 resolve_paths() {
@@ -143,8 +142,8 @@ disk() {
 usage() {
   cat <<USAGE
 Usage: $0 [build|disk|run|clean|all]
-  build : generate room data + build HELLO (HGR mode)
-  disk  : create ProDOS disk image + add HELLO
+  build : generate room data + build PROTO02 (HGR mode)
+  disk  : create ProDOS disk image + add PROTO02
   run   : build + disk + run AppleWin
   clean : remove build outputs
   all   : clean + build + disk (default)
