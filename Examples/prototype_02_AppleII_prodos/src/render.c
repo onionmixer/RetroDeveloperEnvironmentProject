@@ -4,6 +4,16 @@
 #include "monster.h"
 #include "input.h"
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+/*
+ * Tile pattern buffer loaded from external TILES file.
+ * 9 tiles x 8 bytes = 72 bytes at $1C88 (between GRID_BUFFER end and FILE_BUFFER).
+ * Order: FLOOR, WALL, DOOR_H, DOOR_V, STAIR_DN, STAIR_UP, BOX, EMPTY, reserved
+ */
+#define TILE_BUFFER ((const unsigned char *)0x1C88)
+static unsigned char g_loaded_tileset = 0xFF;
 
 /* ========== HGR row address lookup table (192 entries x 2 bytes = 384 bytes) ========== */
 static const unsigned int hgr_row[192] = {
@@ -33,35 +43,16 @@ static const unsigned int hgr_row[192] = {
     0x23D0, 0x27D0, 0x2BD0, 0x2FD0, 0x33D0, 0x37D0, 0x3BD0, 0x3FD0,
 };
 
-/* ========== Tile patterns (tiles.h content inlined — 16 tiles x 8 bytes) ========== */
+/* ========== Tile patterns ========== */
 
-/* Map tiles */
-static const unsigned char tile_floor[8] = {
-    0x00, 0x00, 0x04, 0x00, 0x00, 0x20, 0x00, 0x00
-};
-static const unsigned char tile_wall[8] = {
-    0x7F, 0x63, 0x63, 0x7F, 0x1C, 0x1C, 0x7F, 0x00
-};
-static const unsigned char tile_door_h[8] = {
-    0x00, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x7F, 0x00
-};
-static const unsigned char tile_door_v[8] = {
-    0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14, 0x14
-};
-static const unsigned char tile_stair_dn[8] = {
-    0x00, 0x00, 0x3E, 0x1C, 0x08, 0x00, 0x3E, 0x00
-};
-static const unsigned char tile_stair_up[8] = {
-    0x00, 0x3E, 0x00, 0x08, 0x1C, 0x3E, 0x00, 0x00
-};
-static const unsigned char tile_box[8] = {
-    0x00, 0x3E, 0x22, 0x22, 0x2A, 0x22, 0x3E, 0x00
-};
+/* Map tiles are loaded from TILE_BUFFER via render_load_tileset() */
+
+/* Empty tile (used by font rendering for undefined characters) */
 static const unsigned char tile_empty[8] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-/* Border tiles */
+/* Border tiles (always in binary — not part of tileset file) */
 static const unsigned char tile_border_tl[8] = {
     0x00, 0x00, 0x7C, 0x04, 0x04, 0x04, 0x04, 0x04
 };
@@ -223,21 +214,46 @@ static const unsigned char *tile_code_to_pattern(TileCode code,
     unsigned char room, unsigned char gx, unsigned char gy)
 {
     switch (code) {
-        case TILE_FLOOR:     return tile_floor;
-        case TILE_WALL:      return tile_wall;
+        case TILE_FLOOR:     return &TILE_BUFFER[0 * 8];
+        case TILE_WALL:      return &TILE_BUFFER[1 * 8];
         case TILE_DOOR:
             if ((gx > 0 && logic_get_tile_code(room, gx-1, gy) == TILE_DOOR) ||
                 (gx < ROOM_W-1 && logic_get_tile_code(room, gx+1, gy) == TILE_DOOR))
-                return tile_door_h;
-            return tile_door_v;
-        case TILE_STAIR_DOWN: return tile_stair_dn;
-        case TILE_STAIR_UP:   return tile_stair_up;
-        case TILE_BOX:        return tile_box;
-        default:              return tile_empty;
+                return &TILE_BUFFER[2 * 8];
+            return &TILE_BUFFER[3 * 8];
+        case TILE_STAIR_DOWN: return &TILE_BUFFER[4 * 8];
+        case TILE_STAIR_UP:   return &TILE_BUFFER[5 * 8];
+        case TILE_BOX:        return &TILE_BUFFER[6 * 8];
+        default:              return &TILE_BUFFER[7 * 8];
     }
 }
 
 /* ========== Public API ========== */
+
+void render_load_tileset(unsigned char tileset_id)
+{
+    char fname[7];
+    int fd;
+
+    if (tileset_id == g_loaded_tileset) return;
+
+    /* Build filename: "TILES0" .. "TILES9" */
+    fname[0] = 'T';
+    fname[1] = 'I';
+    fname[2] = 'L';
+    fname[3] = 'E';
+    fname[4] = 'S';
+    fname[5] = '0' + tileset_id;
+    fname[6] = '\0';
+
+    fd = open(fname, O_RDONLY);
+    if (fd >= 0) {
+        read(fd, (void *)0x1C88, 72);
+        close(fd);
+        g_loaded_tileset = tileset_id;
+    }
+    /* On failure, keep previous tileset */
+}
 
 void render_init(void)
 {

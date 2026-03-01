@@ -229,7 +229,8 @@ def resolve_links(rooms: list[dict[str, Any]]) -> tuple[dict[tuple[int, int], tu
     return door_links, stair_links
 
 
-def generate(room_paths: list[Path], out_h: Path, out_c: Path) -> None:
+def generate(room_paths: list[Path], out_h: Path, out_c: Path,
+             binary_dir: Path | None = None) -> None:
     rooms = load_rooms(room_paths)
     validate_rooms(rooms)
     door_links, stair_links = resolve_links(rooms)
@@ -249,7 +250,7 @@ extern const RoomDef g_rooms[ROOM_COUNT];
     lines.append('#include "room_data.h"')
     lines.append("")
 
-    # Emit RLE compressed grid arrays first
+    # Compress grids
     rle_arrays: list[str] = []
     for ri, room in enumerate(rooms):
         raw = bytearray()
@@ -259,24 +260,37 @@ extern const RoomDef g_rooms[ROOM_COUNT];
                 lo = tile_to_code(row[i + 1])
                 raw.append((hi << 4) | lo)
         compressed = rle_compress(bytes(raw))
-        rle_arrays.append(f"room_{ri}_grid_rle")
-        lines.append(f"static const unsigned char room_{ri}_grid_rle[] = {{")
-        for off in range(0, len(compressed), 16):
-            chunk = compressed[off : off + 16]
-            nums = ", ".join(f"0x{b:02X}" for b in chunk)
-            lines.append(f"    {nums},")
-        lines.append("};")
-        lines.append("")
+
+        if binary_dir is not None:
+            # Write RLE as binary file: ROOM00, ROOM01, ...
+            bin_name = f"ROOM{ri:02d}"
+            bin_path = binary_dir / bin_name
+            bin_path.write_bytes(compressed)
+            print(f"  {bin_name}: {len(compressed)} bytes")
+        else:
+            # Emit inline C array
+            rle_arrays.append(f"room_{ri}_grid_rle")
+            lines.append(f"static const unsigned char room_{ri}_grid_rle[] = {{")
+            for off in range(0, len(compressed), 16):
+                chunk = compressed[off : off + 16]
+                nums = ", ".join(f"0x{b:02X}" for b in chunk)
+                lines.append(f"    {nums},")
+            lines.append("};")
+            lines.append("")
 
     lines.append("const RoomDef g_rooms[ROOM_COUNT] = {")
 
     for ri, room in enumerate(rooms):
+        tileset_id = int(room.get("tileset_id", 0))
         lines.append("    {")
         lines.append(f'        "{c_escape(room["id"])}",')
         lines.append(f'        "{c_escape(room["name"])}",')
         lines.append(f'        {int(room["z_level"])},')
-        lines.append(f'        {rle_arrays[ri]},')
-        lines.append(f'        sizeof({rle_arrays[ri]}),')
+        if binary_dir is not None:
+            lines.append(f'        {tileset_id},')
+        else:
+            lines.append(f'        {rle_arrays[ri]},')
+            lines.append(f'        sizeof({rle_arrays[ri]}),')
 
         # doors
         doors = room.get("doors", [])
@@ -364,6 +378,8 @@ def main() -> int:
                         default=Path("/mnt/USERS/onion/DATA_ORIGN/Workspace/04_Game/prototype/01/data"))
     parser.add_argument("--out-dir", type=Path,
                         default=Path("./Examples/prototype_01_AppleII_prodos/src"))
+    parser.add_argument("--binary-dir", type=Path, default=None,
+                        help="Output RLE data as binary files (ROOMnn) to this directory")
     parser.add_argument("--validate", action="store_true")
     args = parser.parse_args()
 
@@ -377,7 +393,13 @@ def main() -> int:
 
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    generate(room_paths, out_dir / "room_data.h", out_dir / "room_data.c")
+
+    binary_dir = args.binary_dir
+    if binary_dir is not None:
+        binary_dir.mkdir(parents=True, exist_ok=True)
+
+    generate(room_paths, out_dir / "room_data.h", out_dir / "room_data.c",
+             binary_dir=binary_dir)
     print(f"WROTE {out_dir / 'room_data.h'}")
     print(f"WROTE {out_dir / 'room_data.c'}")
     return 0

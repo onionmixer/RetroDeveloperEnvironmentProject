@@ -2,6 +2,7 @@
 #define RENDER_H
 #include "engine.h"
 
+void render_load_tileset(unsigned char tileset_id);
 void render_init(void);
 void render_draw_map(const GameState *gs);
 void render_draw_border(void);

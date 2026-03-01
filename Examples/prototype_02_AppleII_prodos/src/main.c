@@ -13,6 +13,7 @@ void main(void)
 
     monster_init_all();
     logic_init(&st);
+    render_load_tileset(g_rooms[st.room].tileset_id);
 
     render_init();
     render_set_status("Ready.");
@@ -93,6 +94,7 @@ void main(void)
                 const DoorDef *door = logic_find_door(st.room, tx, ty);
                 if (door && render_prompt_yes_no("Enter room? 1=yes 0=no")) {
                     if (logic_do_door(&st, door)) {
+                        render_load_tileset(g_rooms[st.room].tileset_id);
                         render_set_status("Room changed.");
                         move_counter = 0;
                     } else {
@@ -107,6 +109,7 @@ void main(void)
                 const StairDef *stair = logic_find_stair(st.room, tx, ty);
                 if (stair && render_prompt_yes_no("Use stairs? 1=yes 0=no")) {
                     if (logic_do_stair(&st, stair)) {
+                        render_load_tileset(g_rooms[st.room].tileset_id);
                         render_set_status("Floor changed.");
                         move_counter = 0;
                     } else {

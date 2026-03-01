@@ -42,16 +42,23 @@ clean() {
 gen_data() {
   python3 ./tools/json_to_room_data.py \
     --source /mnt/USERS/onion/DATA_ORIGN/Workspace/04_Game/prototype/01/data \
-    --out-dir ./src
+    --out-dir ./src \
+    --binary-dir "$BUILD_DIR"
+}
+
+gen_tileset() {
+  python3 ./tools/gen_tileset.py --out-dir "$BUILD_DIR"
 }
 
 build() {
   ./tools/check_env.sh
-  gen_data
   mkdir -p "$BUILD_DIR"
+  gen_data
+  gen_tileset
 
   echo "[1/3] Building HELLO"
   cl65 -t apple2 -C src/apple2-hgr-ext.cfg -O -o HELLO \
+    /usr/share/cc65/lib/apple2-iobuf-0800.o \
     src/main.c src/render.c src/logic.c src/monster.c \
     src/input.c src/help.c src/room_data.c
 
@@ -109,6 +116,26 @@ disk() {
   "$RDEDISKTOOL" --bootdisk-mode off delete "$DISK_IMAGE" "$PROGRAM_NAME" >/dev/null 2>&1 || true
   "$RDEDISKTOOL" --bootdisk-mode strict add --type B --addr 0x0803 \
     "$DISK_IMAGE" "$PROGRAM_FILE" "$PROGRAM_NAME"
+
+  # Add ROOM binary files
+  for f in "$BUILD_DIR"/ROOM??; do
+    [ -f "$f" ] || continue
+    fname="$(basename "$f")"
+    "$RDEDISKTOOL" --bootdisk-mode off delete "$DISK_IMAGE" "$fname" >/dev/null 2>&1 || true
+    "$RDEDISKTOOL" --bootdisk-mode off add --type B --addr 0x1CD0 \
+      "$DISK_IMAGE" "$f" "$fname"
+    echo "  Added: $fname"
+  done
+
+  # Add TILES binary files
+  for f in "$BUILD_DIR"/TILES?; do
+    [ -f "$f" ] || continue
+    fname="$(basename "$f")"
+    "$RDEDISKTOOL" --bootdisk-mode off delete "$DISK_IMAGE" "$fname" >/dev/null 2>&1 || true
+    "$RDEDISKTOOL" --bootdisk-mode off add --type B --addr 0x1C88 \
+      "$DISK_IMAGE" "$f" "$fname"
+    echo "  Added: $fname"
+  done
 
   echo "Disk image ready: $DISK_IMAGE"
 }

@@ -111,8 +111,7 @@ typedef struct {
     const char *id;
     const char *name;
     signed char z_level;
-    const unsigned char *grid_rle;
-    unsigned int grid_rle_size;
+    unsigned char tileset_id;
 
     unsigned char door_count;
     DoorDef doors[MAX_DOORS];
