@@ -26,13 +26,14 @@ z88dk + ubox-msx-lib-z88dk를 사용한 MSX SCREEN 2 타일 기반 로그라이�
 ### MSX-DOS2 버전
 
 ```bash
-./compile_dos.sh all      # clean → build → disk → verify
+./compile_dos.sh all      # clean → build (data gen + compile) → disk → verify
 ./run_openmsx_dos.sh      # MSX-DOS2 부트디스크에서 실행
 ```
 
-- 출력: `build_dos/PROTO02.COM` (~18KB) + `build_dos/PROTO02.dsk`
-- zcc 플래그: `+msx -subtype=msxdos2`
-- 소스: `main_dos.c`, `render_dos.c` 사용 (나머지는 공유)
+- 출력: `build_dos/PROTO02.COM` (~17KB) + `build_dos/PROTO02.dsk`
+- zcc 플래그: `+msx -subtype=msxdos2 -DMSXDOS`
+- 소스: `main_dos.c`, `render_dos.c`, `room_data_dos.c` 사용 (나머지는 공유)
+- 데이터 파일: `ROOM00-02` (룸 그리드, 720B/개), `TILES0` (타일셋, 144B) → 디스크에 분리
 - 실행: MSX-DOS 프롬프트에서 `PROTO02` 입력
 
 ---
@@ -46,7 +47,7 @@ z88dk + ubox-msx-lib-z88dk를 사용한 MSX SCREEN 2 타일 기반 로그라이�
 | `logic.c / logic.h` | 게임 로직 (이동, 충돌, 방 전환) |
 | `input.c / input.h` | 키보드 입력 (WASD, 키 리피트) |
 | `help.c / help.h` | 도움말 화면 |
-| `room_data.c / room_data.h` | 방 맵 데이터, 문/계단 연결 |
+| `room_data.c / room_data.h` | 방 메타데이터, 문/계단 연결 (ROM용: 그리드 포함) |
 | `monster.c / monster.h` | 몬스터 AI (IDLE/CHASE/RETURNING) |
 | `engine.h` | GameState 구조체, 상수 |
 | `tiles.h` | 타일 패턴/색상 데이터 |
@@ -58,7 +59,17 @@ z88dk + ubox-msx-lib-z88dk를 사용한 MSX SCREEN 2 타일 기반 로그라이�
 | ROM 버전 | DOS 버전 | 차이점 |
 |----------|----------|--------|
 | `main.c` | `main_dos.c` | `void main()` vs `int main()` + `return 0` |
-| `render.c` | `render_dos.c` | ISR 훅, ubox_wait, cleanup 처리 방식 |
+| `render.c` | `render_dos.c` | ISR 훅, ubox_wait, cleanup, 그리드 접근 방식 |
+| `room_data.c` | `room_data_dos.c` | ROM: 그리드 인라인 / DOS: 디스크 로드 (`grid_load_room()`) |
+
+### 빌드 도구
+
+| 파일 | 용도 |
+|------|------|
+| `tools/gen_room_bin.py` | `room_data.c`에서 룸 그리드 추출 → `ROOM00-02` 바이너리 |
+| `tools/gen_tileset_msx.py` | `tiles.h`에서 맵 타일 데이터 추출 → `TILES0` 바이너리 |
+
+DOS 빌드 시 `compile_dos.sh`가 자동 실행. 생성된 파일은 디스크 이미지에 포함된다.
 
 ---
 
@@ -318,6 +329,8 @@ int main(void)             // ← int 리턴
 | ISR 초기화 | `ubox_init_isr(2)` | **호출하지 않음** |
 | ubox_wait | 라이브러리 버전 (ISR 기반) | `halt;halt` 오버라이드 |
 | cleanup | halt 무한루프 | `ubox_set_mode(0)` 후 리턴 |
+| 그리드 접근 | `g_room_grids[][]` 인라인 | `grid_load_room()` 디스크 로드 |
+| 타일셋 로드 | 컴파일 시점 정적 | `render_load_tileset()` 디스크 로드 |
 
 ### 3. compile.sh → compile_dos.sh
 

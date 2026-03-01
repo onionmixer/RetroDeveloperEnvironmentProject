@@ -48,6 +48,7 @@ static void do_door(void)
             monster_init_room(g.room);
             move_counter = 0;
             render_set_status("Continue.");
+            render_load_tileset(g_room_tileset_id[g.room]);
             render_redraw_all(&g);
             input_reset_timer();
             return;
@@ -82,6 +83,7 @@ static void do_stair(void)
             monster_init_room(g.room);
             move_counter = 0;
             render_set_status("Continue.");
+            render_load_tileset(g_room_tileset_id[g.room]);
             render_redraw_all(&g);
             input_reset_timer();
             return;
@@ -101,6 +103,7 @@ int main(void)
     monster_init_room(g.room);
     move_counter = 0;
     render_init();
+    render_load_tileset(g_room_tileset_id[g.room]);
     render_redraw_all(&g);
 
     while (g.running) {

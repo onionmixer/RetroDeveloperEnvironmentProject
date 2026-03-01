@@ -21,5 +21,8 @@ void render_update_status(const GameState *gs);
 void render_set_status(const char *msg);
 void render_redraw_all(const GameState *gs);
 void render_cleanup(void);
+#ifdef MSXDOS
+void render_load_tileset(unsigned char tileset_id);
+#endif
 
 #endif

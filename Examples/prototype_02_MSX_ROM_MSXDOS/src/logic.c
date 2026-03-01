@@ -29,7 +29,12 @@ void logic_update_camera(GameState *g)
 char logic_get_tile(unsigned char room, unsigned char x, unsigned char y)
 {
     if (room >= ROOM_COUNT || x >= ROOM_W || y >= ROOM_H) return '#';
+#ifdef MSXDOS
+    grid_load_room(room);
+    return g_grid_buffer[(unsigned int)y * ROOM_W + x];
+#else
     return g_room_grids[room][y][x];
+#endif
 }
 
 int logic_find_door_at(unsigned char room, unsigned char x, unsigned char y)

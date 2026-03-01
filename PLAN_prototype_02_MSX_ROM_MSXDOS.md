@@ -302,226 +302,15 @@ const uint8_t tileset_colors[256 * 8];
 > VRAM 전송 후에는 이 배열이 불필요하나, const이므로 코드 영역에 위치하여
 > BSS/힙과 분리됨 (z88dk MSX-DOS는 전체가 RAM이지만 오버레이 최적화의 여지 남김).
 
-### 4.3 맵 타일 비트패턴 (8종)
+### 4.3 타일 비트패턴 (구현 완료)
 
-```c
-// [인덱스 0] TILE_EMPTY — 빈 공간, FG=1(Black), BG=0(Transparent)
-// Color: 0x10
-{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }  // 완전 빈 타일
+맵 타일 8종(인덱스 0-7), 테두리 타일 8종(인덱스 16-23), 폰트 타일(인덱스 32-122)의
+비트패턴과 색상은 `src/tiles.h` 및 `src/font.h`에 구현 완료.
 
-// [인덱스 1] TILE_FLOOR — 희소 도트, FG=12(DarkGreen), BG=0(Transparent)
-// Color: 0xC0
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b00100000,  // ..#.....
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000010,  // ......#.
-  0b00000000,  // ........
-  0b00000000 } // ........
-
-// [인덱스 2] TILE_WALL — 벽돌, FG=14(Gray), BG=0(Transparent)
-// Color: 0xE0
-{ 0b11111111,  // ████████
-  0b00000000,  // ........
-  0b11111111,  // ████████
-  0b10001000,  // █...█...
-  0b11111111,  // ████████
-  0b00000000,  // ........
-  0b11111111,  // ████████
-  0b00010001 } // ...█...█
-
-// [인덱스 3] TILE_DOOR_H — 수평 문, FG=5(LightBlue), BG=0(Transparent)
-// Color: 0x50
-{ 0b00000000,  // ........
-  0b11111111,  // ████████
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b11111111,  // ████████
-  0b00000000 } // ........
-
-// [인덱스 4] TILE_DOOR_V — 수직 문, FG=5(LightBlue), BG=0(Transparent)
-// Color: 0x50
-{ 0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100,  // ..#..#..
-  0b00100100 } // ..#..#..
-
-// [인덱스 5] TILE_STAIR_DN — 하향 계단 ▼, FG=9(LightRed), BG=0(Transparent)
-// Color: 0x90
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b01111110,  // .######.
-  0b00111100,  // ..####..
-  0b00011000,  // ...##...
-  0b00000000,  // ........
-  0b01111110,  // .######.
-  0b00000000 } // ........
-
-// [인덱스 6] TILE_STAIR_UP — 상향 계단 ▲, FG=3(LightGreen), BG=0(Transparent)
-// Color: 0x30
-{ 0b00000000,  // ........
-  0b01111110,  // .######.
-  0b00000000,  // ........
-  0b00011000,  // ...##...
-  0b00111100,  // ..####..
-  0b01111110,  // .######.
-  0b00000000,  // ........
-  0b00000000 } // ........
-
-// [인덱스 7] TILE_BOX — 상자, FG=11(LightYellow), BG=0(Transparent)
-// Color: 0xB0
-{ 0b00000000,  // ........
-  0b01111110,  // .######.
-  0b01000010,  // .#....#.
-  0b01000010,  // .#....#.
-  0b01011010,  // .#.##.#.
-  0b01000010,  // .#....#.
-  0b01111110,  // .######.
-  0b00000000 } // ........
-```
-
-### 4.4 테두리 타일 비트패턴 (8종)
-
-모든 테두리: FG=15(White), BG=0(Transparent), Color=`0xF0`
-
-```c
-// [인덱스 16] TILE_BORDER_TL — 좌상단 ┌
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b00111111,  // ..######
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000 } // ..#.....
-
-// [인덱스 17] TILE_BORDER_TR — 우상단 ┐
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b11111100,  // ######..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100 } // .....#..
-
-// [인덱스 18] TILE_BORDER_BL — 좌하단 └
-{ 0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00111111,  // ..######
-  0b00000000,  // ........
-  0b00000000 } // ........
-
-// [인덱스 19] TILE_BORDER_BR — 우하단 ┘
-{ 0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b11111100,  // ######..
-  0b00000000,  // ........
-  0b00000000 } // ........
-
-// [인덱스 20] TILE_BORDER_H — 수평선 ─
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b11111111,  // ████████
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000 } // ........
-
-// [인덱스 21] TILE_BORDER_V — 좌측 수직선 │ (bit5)
-{ 0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000,  // ..#.....
-  0b00100000 } // ..#.....
-
-// [인덱스 22] TILE_BORDER_VR — 우측 수직선 │ (bit2)
-{ 0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100,  // .....#..
-  0b00000100 } // .....#..
-
-// [인덱스 23] TILE_BORDER_HB — 하단 수평선 ─ (row 5, BL/BR과 정렬)
-// 상단 H(row 2)와 별개 — 하단 테두리에서 BL/BR 코너와 수평선이 연결되도록 row 5에 배치
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b11111111,  // ████████  (row 5 — BL/BR과 동일 위치)
-  0b00000000,  // ........
-  0b00000000 } // ........
-```
-
-> **테두리 정렬 참고**: 좌측 수직선(V, TL, BL)은 bit5에, 우측 수직선(VR, TR, BR)은
-> bit2에 배치하여 좌우 코너와 각각 정렬되도록 한다.
-> **상/하단 수평선 분리**: 상단 테두리는 H(row 2) + TL/TR(row 2)로 정렬하고,
-> 하단 테두리는 HB(row 5) + BL/BR(row 5)로 정렬한다. 하나의 H 타일로 양쪽을
-> 겸용하면 하단 코너와 3픽셀 어긋나므로, 반드시 HB를 별도 사용해야 한다.
-
-### 4.5 폰트 타일 비트패턴 기준
-
-폰트 타일은 §4.2.3의 설계 기준(5×7 글리프, 고정폭)에 따라 Claude Code가 생성한다.
-여기서는 대표 문자 몇 개의 예시만 제시한다.
-
-```c
-// 폰트: 5x7 글리프 in 8x8 cell (좌측 정렬, 우측 2col + 하단 1row 비움)
-// 모든 폰트 Color: 0xF0 (FG=15 White, BG=0 Transparent)
-
-// [인덱스 65] 'A'
-{ 0b01110000,  // .###....
-  0b10001000,  // #...#...
-  0b10001000,  // #...#...
-  0b11111000,  // #####...
-  0b10001000,  // #...#...
-  0b10001000,  // #...#...
-  0b10001000,  // #...#...
-  0b00000000 } // ........
-
-// [인덱스 48] '0'
-{ 0b01110000,  // .###....
-  0b10001000,  // #...#...
-  0b10011000,  // #..##...
-  0b10101000,  // #.#.#...
-  0b11001000,  // ##..#...
-  0b10001000,  // #...#...
-  0b01110000,  // .###....
-  0b00000000 } // ........
-
-// [인덱스 46] '.'
-{ 0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b00000000,  // ........
-  0b01100000,  // .##.....
-  0b01100000,  // .##.....
-  0b00000000 } // ........
-```
-
-> **구현 시 나머지 ~67개 글리프**는 위 규칙(5×7, 좌측 정렬, bit7~bit3 사용)에 따라
-> Claude Code가 일괄 생성한다. MSX BIOS 내장 폰트 스타일을 참고하되 정확히 복제하지는 않는다.
+**설계 원칙 요약**:
+- 맵 타일: §4.1 색상 규칙에 따라 각 타일 FG 단색 + BG=Transparent
+- 테두리: 좌측 수직선(V, TL, BL)=bit5, 우측(VR, TR, BR)=bit2로 정렬. 상단 H(row 2), 하단 HB(row 5) 분리
+- 폰트: 5×7 글리프, 8×8 셀 좌측 정렬, 우측 2col+하단 1row 비움, Color=0xF0
 
 ---
 
@@ -622,206 +411,32 @@ main.c
       └── render.c/h (텍스트 출력 함수 공유)
 ```
 
-### 6.3 모듈별 상세 설계
+### 6.3 모듈별 상세 설계 (구현 완료)
 
-#### engine.h — 변경사항
+각 모듈의 구현은 `src/` 디렉토리의 실제 소스 파일 참조. 주요 설계 결정만 기록:
 
-```c
-// 뷰포트 상수 변경
-#define VIEW_W  10   // (기존 12)
-#define VIEW_H  10   // (기존 7)
+#### engine.h
+- VIEW_W=10, VIEW_H=10 (prototype_01은 12×7)
+- GameState에서 status[80] 제거 → render.c 내부 static 버퍼로 이동
 
-// GameState — prototype_01의 status[80] 필드 제거
-// (상태 메시지는 render.c 내부 static 버퍼로 이동하여
-//  도움말 복귀/룸 전환 시 render_redraw_all()에서 자동 복원)
-// MoveResult 등 나머지 구조체는 prototype_01과 동일
-```
+#### render.c / render_dos.c
+- **초기화 순서**: set_mode(2) → set_colors(15,1,1) → wvdp(1,0xE0) → disable_screen → set_tiles → fill_screen → set_sprite → draw_border → init_isr. **enable_screen은 render_redraw_all()에서 호출** (빈 화면 프레임 방지)
+- **부분 갱신**: dirty flag 기반 상태 메시지 갱신, 더티 타일 추적(prev_map)
+- **프롬프트**: render_prompt_yes_no → STATUS 영역(13,6), render_wait_any_key → MESSAGE 영역(0,14)
+- **char→tile**: `@` 문자의 H/V 구분은 좌우 인접 셀 확인으로 판별
+- render_set_status(msg) — GameState 파라미터 없는 API
 
-#### render.c — 신규 (SCREEN 2 전용)
+#### logic.c
+- 카메라 클램핑: `clamp(player - VIEW/2, 0, ROOM - VIEW)`. 나머지 로직은 prototype_01과 동일
 
-```c
-// 초기화 — 호출 순서가 중요함 (아래 순서 준수)
-// 1. ubox_set_mode(2)         — SCREEN 2 전환 (BIOS INIGRP)
-// 1a. ubox_set_colors(15,1,1) — FORCLR=15(White), BAKCLR=1(Black), BDRCLR=1(Black)
-//     BIOS CHGCLR(0x0062) 호출 → VDP R7 하위 4비트에 backdrop=1(Black) 설정.
-//     이것이 없으면 MSX-DOS의 잔여 VDP R7 값(청/백)이 유지되어
-//     color 0(Transparent)인 모든 타일 BG가 검정이 아닌 엉뚱한 색으로 표시됨.
-//     (ubox 예제 게임도 set_mode 직후에 set_colors 호출)
-// 2. ubox_wvdp(1, 0xE0)      — 8×8 스프라이트 오버라이드 (INIGRP 이후 필수!)
-// 3. ubox_disable_screen()    — 셋업 중 깜빡임 방지
-// 4. ubox_set_tiles/colors    — 타일 패턴+색상 VRAM 로드
-// 5. ubox_fill_screen()       — 화면 클리어
-// 6. ubox_set_sprite_pat8()   — 스프라이트 패턴 등록
-// 7. render_draw_border()     — 테두리 그리기
-// 8. ubox_init_isr(2)         — ISR 시작 (HTIMI 훅 설치)
-// ※ enable_screen()은 여기서 호출하지 않음 — 아래 main.c 초기화 시퀀스 참조
-//
-// **주의: render_init()는 하드웨어 초기화만 수행하며, 화면은 OFF 상태로 유지.**
-// main.c에서 render_init() 직후 render_redraw_all(&g)을 호출하여
-// 맵/상태/키힌트/플레이어를 렌더링한 뒤 enable_screen()까지 처리한다.
-// (render_redraw_all 내부에서 ubox_enable_screen() 호출)
-//
-// 만약 render_init() 내에서 enable_screen()을 호출하면:
-// - 사용자는 테두리만 있는 빈 화면을 1프레임 보게 됨
-// - 키 힌트(row 23)가 render_redraw_all()에서만 출력되므로 첫 프레임에 누락
-// - prototype_01도 첫 render_draw()가 메인 루프 내에서 호출되나,
-//   clrscr()+전체 재렌더링이므로 문제 없었음. prototype_02는 부분 갱신이므로
-//   초기 화면 구성을 명시적으로 수행해야 함.
-void render_init(void);
+#### main.c / main_dos.c
+- 초기화: logic_init → render_init → logic_update_camera → render_redraw_all
+- 메인 루프: ubox_wait → input_read → 입력 처리 → camera → draw_map → update_player → update_status
+- "입력→상태 변경→렌더링" 순서 필수 (부분 갱신)
 
-// 맵 렌더링
-void render_draw_map(const GameState *gs);  // 10×10 뷰포트 타일 갱신
-void render_update_player(const GameState *gs); // 플레이어 스프라이트 위치 갱신
-
-// 텍스트 렌더링
-void render_print(uint8_t x, uint8_t y, const char *text);  // 타일 기반 텍스트 출력
-void render_print_n(uint8_t x, uint8_t y, const char *text, uint8_t maxlen); // 길이 제한
-
-// UI 갱신
-void render_update_status(const GameState *gs);  // 좌표, 방이름, 상태 메시지(내부 static 버퍼) 표시
-    // **주의: prototype_01은 clrscr()+print_padded_line(40자 패딩)으로 이전 텍스트가
-    //   자동 클리어되지만, prototype_02는 타일 기반 부분 갱신이므로 명시적 클리어 필수.**
-    //
-    // 내부 시퀀스:
-    //   1. 상태 메시지 dirty 체크 (render_set_status()가 dirty flag 설정)
-    //   2. dirty이면 render_clear_area(13, 6, 19, 5) — STATUS 영역 클리어
-    //      (미클리어 시 "Enter door? 1=Yes 0=No" → "Moved." 변경 시 rows 7-9 잔상)
-    //   3. sprintf(buf, "X:%3d  Y:%3d", gs->x, gs->y); render_print(13, 2, buf);
-    //      → "X: 49  Y: 49" (우측정렬, §3.1 ASCII 레이아웃과 일치)
-    //   4. sprintf(buf, "Z:%d", ...);  render_print(13, 3, buf);
-    //   5. render_print(0, 0, room_name);
-    //   6. render_print_wrap(13, 6, status_buf, 19, 4);
-    //   7. dirty flag 클리어
-    // z88dk 표준 라이브러리의 sprintf() 사용 (prototype_01에서도 사용 확인)
-void render_set_status(const char *msg);         // 상태 메시지 설정 (내부 static char[40] 버퍼에 저장 + dirty flag 설정)
-void render_clear_area(uint8_t x, uint8_t y, uint8_t w, uint8_t h); // 영역 클리어 — 내부적으로 ubox_put_tile(TILE_EMPTY=0)을 w×h회 호출
-void render_redraw_all(const GameState *gs);     // 전체 화면 재렌더링 (도움말 복귀/룸 전환 시)
-
-// 프롬프트 (prototype_01의 render_draw() 전체 갱신 대신 부분 갱신)
-// render_prompt_yes_no 내부 — STATUS 영역(13,6) 사용 (짧은 확인 메시지):
-//   1. render_clear_area(13, 6, 19, 5)  — 상태 영역 클리어
-//   2. render_print_wrap(13, 6, msg, 19, 3) — 메시지 줄바꿈 출력
-//   3. render_print(13, 9, "1=Yes 0=No")  — Y/N 안내 별도 출력
-//   4. wait_yes_no()  — 키 대기
-//   5. input_reset_timer()  — key_timer 리셋
-// render_wait_any_key 내부 — MESSAGE 영역(0,14) 사용 (효과/아이템 등 긴 텍스트):
-//   prototype_01은 단일 status line에 전체 redraw였으나,
-//   prototype_02는 효과/아이템 텍스트가 54자+ 가능하므로 19열 상태 영역 대신
-//   32열×8행 메시지 영역을 사용한다.
-//   1. render_clear_area(0, 14, 32, 8)   — 메시지 영역 클리어
-//   2. render_print_wrap(0, 14, msg, 32, 7) — 메시지 줄바꿈 출력 (32열 활용)
-//   3. render_print(0, 22, "[Any key]")  — 안내 표시 (row 22, 키힌트 바로 위)
-//   4. wait_any_key()  — 키 대기
-//   5. render_clear_area(0, 14, 32, 9)   — 메시지 영역 + row 22 클리어 (잔상 제거)
-//      (32×9 = rows 14~22, row 22의 "[Any key]" 텍스트도 포함하여 클리어)
-//   6. input_reset_timer()  — key_timer 리셋
-uint8_t render_prompt_yes_no(const char *msg);   // 1=예, 0=아니오 반환
-void render_wait_any_key(const char *msg);        // 아무 키 대기
-
-// 화면 전환
-void render_cleanup(void);       // SCREEN 0 복귀 (종료 시)
-```
-
-#### render.c — char→tile 매핑
-
-문(`@`)의 수평/수직 타일 구분을 위해 인접 셀을 참조하는 버전을 사용한다.
-(룸 그리드에 2타일 분량의 `@`가 이미 배치되어 있으므로, 좌우 인접 확인으로 방향 판별 가능)
-
-```c
-static uint8_t char_to_map_tile(uint8_t gx, uint8_t gy, const char grid[ROOM_H][ROOM_W+1]) {
-    char c = grid[gy][gx];
-    switch (c) {
-        case '.': return TILE_FLOOR;
-        case '#': return TILE_WALL;
-        case '@':
-            // 좌우에도 '@'가 있으면 수평, 아니면 수직
-            if ((gx > 0 && grid[gy][gx-1] == '@') ||
-                (gx < ROOM_W-1 && grid[gy][gx+1] == '@'))
-                return TILE_DOOR_H;
-            return TILE_DOOR_V;
-        case '<': return TILE_STAIR_DN;
-        case '>': return TILE_STAIR_UP;
-        case '%': return TILE_BOX;
-        default:  return TILE_EMPTY;
-    }
-}
-```
-
-#### logic.c — 변경사항
-
-- `VIEW_W`, `VIEW_H` 상수만 변경 (10×10)
-- 카메라 클램핑 로직:
-  ```c
-  cam_x = clamp(player_x - VIEW_W/2, 0, ROOM_W - VIEW_W);  // [0, 90]
-  cam_y = clamp(player_y - VIEW_H/2, 0, ROOM_H - VIEW_H);  // [0, 90]
-  ```
-- 나머지 로직(이동, 문/계단/상자 판정)은 동일
-
-#### main.c — 변경사항
-
-- `conio.h` 의존 제거
-- 입력 모듈(`input.c/h`) 분리: `input_read()` 함수로 통합 (§7.3 참조)
-- ubox 키보드 입력으로 교체 (`input_read()` — §7.3 참조)
-- **초기화 시퀀스** (render_init → 초기 화면 구성 → 메인 루프):
-  ```c
-  // 초기화
-  GameState g;
-  uint8_t cmd;         // C89: 블록 상단 선언
-  logic_init(&g);                         // 게임 상태 초기화
-  render_init();                          // HW 초기화 (화면 OFF 상태 유지)
-  logic_update_camera(&g);               // 초기 카메라 위치 계산
-  render_redraw_all(&g);                 // 맵+상태+키힌트+플레이어 렌더링 + 화면 ON
-  // ※ render_init()는 enable_screen을 호출하지 않으므로,
-  //    render_redraw_all()이 최초 화면 구성과 enable_screen을 모두 처리한다.
-  //    이로써 테두리만 보이는 빈 화면 프레임이 방지된다.
-  ```
-- **메인 루프 전체 구조** (prototype_01의 render_draw→cgetc→process 패턴 대응):
-  ```c
-  // prototype_01: render_draw(&g) → cgetc() → process (render-input-update)
-  // prototype_02: 동일 패턴이나 non-blocking + 부분 갱신으로 전환
-  while (g.running) {
-      ubox_wait();                        // 1. 프레임 동기화
-      cmd = input_read();                 // 2. 논블로킹 키 스캔
-
-      // 3. 입력 처리 (이동, 상호작용, 도움말, 종료)
-      if (cmd == INPUT_UP)    logic_try_move(&g, 0, -1);
-      else if (cmd == INPUT_DOWN)  logic_try_move(&g, 0, 1);
-      else if (cmd == INPUT_LEFT)  logic_try_move(&g, -1, 0);
-      else if (cmd == INPUT_RIGHT) logic_try_move(&g, 1, 0);
-      // ... (문/계단/상자 상호작용, 도움말, 종료 처리)
-
-      // 4. 렌더링 (매 프레임, 입력 처리 후)
-      logic_update_camera(&g);            // 카메라 추적
-      render_draw_map(&g);                // 맵 타일 갱신 (더티 타일만, §A.5)
-      render_update_player(&g);           // 스프라이트 위치
-      render_update_status(&g);           // 좌표 + 상태 메시지 (dirty 시만 클리어)
-  }
-  ```
-  > **참고**: prototype_01은 render_draw()가 clrscr()+전체 재렌더링이므로 순서가
-  > 자유로우나, prototype_02는 부분 갱신이므로 "입력→상태 변경→렌더링" 순서를
-  > 지켜야 변경 결과가 같은 프레임에 반영된다.
-- 상호작용 프롬프트를 `render_prompt_yes_no()` 으로 통일 (§7.4 대기 함수 참조)
-- **`render_set_status()` API 변경**: prototype_01의 `render_set_status(&g, msg)` →
-  `render_set_status(msg)` (GameState 파라미터 제거, §6.3 engine.h 참조).
-  main.c 내 13곳의 호출부 모두 수정 필요 (예: `render_set_status(&g, "Moved.")` → `render_set_status("Moved.")`)
-
-#### help.c — 변경사항
-
-- 텍스트 출력을 `render_print()` 으로 교체
-- 스크롤 로직은 동일 (render_print로 행 단위 출력)
-- 화면 전환: 도움말 진입 시 맵 영역 저장 불필요 (전체 화면 도움말 → 복귀 시 재렌더링)
-- **도움말 진입 시 화면 클리어 필수**:
-  prototype_01은 `help_render()` 내부에서 `clrscr()`를 호출하여 이전 화면을 클리어한다.
-  prototype_02에서는 `ubox_fill_screen(0)`으로 전체 Name Table을 TILE_EMPTY(0)로 채워
-  맵/상태/키힌트 등 모든 기존 타일을 제거한 뒤 도움말 텍스트를 출력해야 한다.
-- **스프라이트 숨기기 필수**: 도움말 진입 시 플레이어 스프라이트를 숨겨야 한다
-  (스프라이트는 타일 레이어 위에 렌더링되므로, 미숨김 시 빨간 스프라이트가 텍스트 위에 겹침).
-  진입 시 `sprite_attr.y = 0xD0` 설정, 복귀 시 `render_redraw_all()` 내 `render_update_player()`가 복원.
-- **도움말 진입 시퀀스**:
-  1. `ubox_fill_screen(0)` — 전체 화면 클리어
-  2. `sprite_attr.y = 0xD0` — 스프라이트 숨기기
-  3. 도움말 텍스트 렌더링 + 스크롤 처리
-  4. 복귀 시 `render_redraw_all(&g)` — 맵/상태/키힌트/플레이어 전체 복원
+#### help.c
+- 진입: ubox_fill_screen(0) → sprite_attr.y=0xD0 → 텍스트 렌더링
+- 복귀: render_redraw_all() → 전체 복원
 
 ---
 
@@ -856,498 +471,72 @@ prototype_02는 `ubox_read_keys(row)` (논블로킹, 키보드 매트릭스 행 
 > **주의**: WASD 키가 행 2, 3, 5에 분산되어 있다.
 > 이동 키를 모두 읽으려면 최소 3개 행(2, 3, 5)을 스캔해야 한다.
 
-### 7.3 입력 처리 구현
+### 7.3 입력 처리 구현 (구현 완료)
 
-```c
-// input.h
-#define INPUT_NONE   0
-#define INPUT_UP     1
-#define INPUT_DOWN   2
-#define INPUT_LEFT   3
-#define INPUT_RIGHT  4
-#define INPUT_YES    5
-#define INPUT_NO     6
-#define INPUT_HELP   7
-#define INPUT_QUIT   8
-#define INPUT_SPACE  9
+`src/input.c` / `src/input.h` 참조. 주요 설계:
 
-uint8_t input_read(void);
-void input_reset_timer(void);  // 프롬프트 복귀 후 key_timer 리셋 (§7.4 참조)
+- `input_read()`: 6개 행(0,2,3,4,5,8) 스캔, 우선순위 이동 > 상호작용 > UI
+- `KEY_REPEAT_DELAY=6` (~200ms at 30fps), key_timer로 반복 제어
+- `input_reset_timer()`: 프롬프트 복귀 후 즉시 입력 수신용
 
-// input.c
-#include "ubox.h"
+### 7.4 프롬프트 대기 함수 (구현 완료)
 
-#define KEY_REPEAT_DELAY  6  // ~200ms (at 30fps = ubox_init_isr(2) with 60Hz)
+`src/render.c` / `src/render_dos.c` 참조.
 
-static uint8_t key_timer = 0;
-
-// key_timer 외부 리셋 함수 (프롬프트 복귀 후 즉시 입력 수신용)
-void input_reset_timer(void) {
-    key_timer = 0;
-}
-
-uint8_t input_read(void) {
-    uint8_t row0, row2, row3, row4, row5, row8;
-    uint8_t result = INPUT_NONE;
-
-    // 키 반복 딜레이: ubox_tick 기반으로 감소
-    if (key_timer > 0) {
-        key_timer--;
-        return INPUT_NONE;
-    }
-
-    // 필요한 행만 스캔 (6개 행)
-    row0 = ubox_read_keys(0);  // 0, 1
-    row2 = ubox_read_keys(2);  // A
-    row3 = ubox_read_keys(3);  // D, H
-    row4 = ubox_read_keys(4);  // Q
-    row5 = ubox_read_keys(5);  // S, W
-    row8 = ubox_read_keys(8);  // SPACE
-
-    // 우선순위: 이동 > 상호작용 > UI
-    if (row5 & UBOX_MSX_KEY_W)     result = INPUT_UP;
-    else if (row5 & UBOX_MSX_KEY_S) result = INPUT_DOWN;
-    else if (row2 & UBOX_MSX_KEY_A) result = INPUT_LEFT;
-    else if (row3 & UBOX_MSX_KEY_D) result = INPUT_RIGHT;
-    else if (row0 & 0x02)           result = INPUT_YES;   // KEY_1
-    else if (row0 & 0x01)           result = INPUT_NO;    // KEY_0
-    else if (row3 & UBOX_MSX_KEY_H) result = INPUT_HELP;
-    else if (row4 & UBOX_MSX_KEY_Q) result = INPUT_QUIT;
-    else if (row8 & UBOX_MSX_KEY_SPACE) result = INPUT_SPACE;
-
-    if (result != INPUT_NONE)
-        key_timer = KEY_REPEAT_DELAY;
-
-    return result;
-}
-```
-
-### 7.4 프롬프트 대기 함수
-
-prototype_01의 블로킹 `cgetc()` 루프를 논블로킹 폴링으로 교체:
-
-```c
-// render_prompt_yes_no 내부 대기 루프
-uint8_t wait_yes_no(void) {
-    uint8_t row0;
-    // 키 해제 대기 (이전 입력이 남아있을 경우 즉시 반응 방지)
-    for (;;) {
-        ubox_wait();
-        row0 = ubox_read_keys(0);
-        if (!(row0 & 0x03)) break;  // '0','1' 모두 떼짐
-    }
-    // 새 키 입력 대기
-    for (;;) {
-        ubox_wait();  // 프레임 동기화
-        row0 = ubox_read_keys(0);
-        if (row0 & 0x02) return 1;  // '1' = Yes
-        if (row0 & 0x01) return 0;  // '0' = No
-    }
-}
-
-// render_wait_any_key 내부 대기 루프
-void wait_any_key(void) {
-    // 현재 눌린 키가 떼질 때까지 대기
-    uint8_t i;
-    uint8_t any_pressed;
-    for (;;) {
-        ubox_wait();
-        any_pressed = 0;
-        for (i = 0; i < 9; i++) {
-            if (ubox_read_keys(i)) { any_pressed = 1; break; }
-        }
-        if (!any_pressed) break;  // 모든 키 떼짐
-    }
-    // 새 키 입력 대기
-    for (;;) {
-        ubox_wait();
-        for (i = 0; i < 9; i++) {
-            if (ubox_read_keys(i)) return;
-        }
-    }
-}
-```
-
-> **주의**: `wait_yes_no()`/`wait_any_key()`는 `input_read()`를 사용하지 않으므로
-> 대기 중 `key_timer`가 감소하지 않는다. 프롬프트 복귀 후 잔여 타이머로 인해
-> 최대 ~200ms 입력 무시가 발생할 수 있다. `render_prompt_yes_no()`와
-> `render_wait_any_key()` 래퍼 함수가 리턴 직전에 `input_reset_timer()`를
-> 호출하여 즉시 입력을 받을 수 있게 처리한다 (§7.3 input.h 참조).
+- `wait_yes_no()`: 키 해제 대기 → row0 스캔 (1=Yes, 0=No)
+- `wait_any_key()`: 전체 키 해제 대기 → 아무 키 입력 대기
+- 프롬프트 래퍼가 리턴 직전 `input_reset_timer()` 호출
 
 ---
 
 ## 8. 빌드 시스템
 
-### 8.1 compile.sh
+### 8.1 빌드 시스템 (구현 완료)
 
-prototype_01과 동일한 z88dk 빌드 흐름을 따른다.
+`compile.sh`, `compile_dos.sh`, `run_openmsx.sh`, `run_openmsx_dos.sh` 참조.
 
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
+**핵심 빌드 설정**:
+- ROM: `zcc +msx -subtype=rom -compiler=sccz80 -SO2 -create-app`
+- DOS: `zcc +msx -subtype=msxdos2 -compiler=sccz80 -SO2 -create-app`
+- ubox 링크: `-I$UBOX_INC -L$UBOX_LIB -lubox`
+- 별도 CRT0 불필요 (z88dk 내장)
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-BUILD_DIR="$SCRIPT_DIR/build"
-TARGET_BASE="PROTO02"
-DISK_IMAGE="$BUILD_DIR/prototype_02_MSX_MSXDOS.dsk"
-RDEDISKTOOL="$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool"
+**표준 타겟**: `clean | build | disk | run | all`
 
-# z88dk 경로
-if [[ -x "/opt/z88dk/bin/zcc" ]]; then
-    ZCC="/opt/z88dk/bin/zcc"
-else
-    ZCC="$(command -v zcc 2>/dev/null || true)"
-fi
+### 8.2 디스크 이미지 생성
 
-# ubox 라이브러리 경로 (z88dk 포팅 버전)
-UBOX_DIR="$PROJECT_ROOT/Library/MSX/ubox-msx-lib-z88dk"
-UBOX_INC="$UBOX_DIR/include"
-UBOX_LIB="$UBOX_DIR/lib"
+- DOS: `msxdos23.dsk` 부트디스크를 복사 → `rdedisktool --bootdisk-mode strict add`로 .COM 주입
+- ROM: 디스크 불필요 (32KB ROM 이미지 직접 생성)
 
-# z88dk 컴파일 플래그
-#   +msx -subtype=msxdos2 : MSX-DOS2 타겟 (내장 CRT, .COM 직접 생성)
-#   -compiler=sccz80      : sccz80 C 컴파일러
-#   -SO2                  : 최적화 레벨 2
-#   -create-app           : .COM 실행파일 직접 생성
-ZCCFLAGS="+msx -subtype=msxdos2 -compiler=sccz80 -SO2 -create-app"
-ZCCFLAGS="$ZCCFLAGS -I$UBOX_INC -I$SCRIPT_DIR/src"
-ZCCFLAGS="$ZCCFLAGS -L$UBOX_LIB -lubox"
+### 8.3 에뮬레이터 실행 흐름
 
-# C 소스 파일 목록
-SRCS="src/main.c src/logic.c src/render.c src/input.c src/help.c src/room_data.c"
+1. 부트디스크 → `/tmp` 복사 (원본 보호)
+2. `rdedisktool --bootdisk-mode off delete` → `strict add` (이전 버전 교체)
+3. `BOOT_DISK=/tmp/... run_openmsx_msxdos2.sh` 실행
 
-build() {
-    mkdir -p "$BUILD_DIR"
-    # z88dk는 한 번의 zcc 호출로 컴파일+링크+.COM 생성
-    "$ZCC" $ZCCFLAGS -o "$BUILD_DIR/$TARGET_BASE" $SRCS
-    echo "Built: $BUILD_DIR/$TARGET_BASE.com ($(stat -c%s "$BUILD_DIR/$TARGET_BASE.com") bytes)"
-}
-```
-
-> **핵심 차이점 (vs prototype_01)**:
-> - `-I$UBOX_INC` 로 ubox 헤더 참조
-> - `-L$UBOX_LIB -lubox` 로 ubox 라이브러리 링크
-> - 별도 CRT0 어셈블, HEX→COM 변환 과정 불필요
-
-**표준 타겟 및 dispatch** (prototype_01과 동일 구조):
+### 8.4 개발 사이클
 
 ```bash
-clean() {
-    rm -rf "$BUILD_DIR"
-}
-
-run_emulator() {
-    "$SCRIPT_DIR/run_openmsx_prototype_02_msx_msxdos_diskaddtest.sh"
-}
-
-usage() {
-    echo "Usage: $0 {clean|build|disk|test|run|all}"
-}
-
-case "${1:-all}" in
-    clean) clean ;;
-    build) check_z88dk; check_ubox; build ;;
-    disk)  check_z88dk; check_ubox; build; create_disk ;;
-    test)  echo "No automated tests yet" ;;
-    run)   run_emulator ;;
-    all)   clean; check_z88dk; check_ubox; build; create_disk ;;
-    *)     usage; exit 1 ;;
-esac
+./compile.sh all              # clean → build → disk (ROM)
+./compile_dos.sh all          # clean → build → disk (DOS)
+./run_openmsx.sh              # ROM 에뮬레이터 실행
+./run_openmsx_dos.sh          # DOS 에뮬레이터 실행
+AUTO_BUILD=1 ./run_openmsx_dos.sh  # 자동 빌드 + 실행
 ```
-
-### 8.2 ubox 라이브러리 사전 빌드
-
-compile.sh에서 ubox z88dk 라이브러리가 빌드되어 있는지 확인:
-
-```bash
-check_ubox() {
-    if [[ ! -f "$UBOX_LIB/ubox.lib" ]]; then
-        echo "Building ubox-msx-lib-z88dk..."
-        make -C "$UBOX_DIR"
-    fi
-}
-```
-
-### 8.3 디스크 이미지 생성
-
-MSX-DOS 2.3 부트디스크를 복사하여 사용 (prototype_01과 다른 방식):
-> **참고**: prototype_01은 `rdedisktool create -f msxdsk --fs msxdos --force`로 빈 디스크를
-> 생성하지만, prototype_02는 DOS 시스템 파일이 포함된 부트디스크를 복사한다.
-> 부트디스크 방식은 에뮬레이터 ROM 확장에 의존하지 않아 더 자급적이다.
-
-```bash
-create_disk() {
-    cp "$PROJECT_ROOT/diskwork/bootdisk/msx/msxdos23.dsk" "$DISK_IMAGE"
-    # --bootdisk-mode strict: MSX-DOS 시스템 파일(MSXDOS2.SYS, COMMAND2.COM 등) 보호
-    # DEVELOPER_MSX_HOWTO.md §3.2 디스크 검증 패턴 참조
-    "$RDEDISKTOOL" --bootdisk-mode strict add "$DISK_IMAGE" "$BUILD_DIR/$TARGET_BASE.com"
-    echo "Disk: $DISK_IMAGE"
-    "$RDEDISKTOOL" list "$DISK_IMAGE"
-}
-```
-
-### 8.4 에뮬레이터 실행 스크립트
-
-`run_openmsx_prototype_02_msx_msxdos_diskaddtest.sh` — prototype_01과 동일한 패턴으로
-부트디스크를 임시 경로에 복사한 뒤 .COM을 주입하고 openMSX를 실행한다.
-
-> **참고**: `create_disk()`(§8.3)은 `build/` 디렉토리에 배포용 디스크 이미지를 생성하고,
-> 이 실행 스크립트는 원본 부트디스크를 `/tmp`에 복사하여 에뮬레이터를 실행한다.
-> 두 경로 모두 원본 `diskwork/bootdisk/msx/msxdos23.dsk`를 직접 수정하지 않는다.
-> (DEVELOPER_MSX_HOWTO.md §5 `run_openmsx_msxdos2.sh` 사용법 참조)
-
-```bash
-#!/usr/bin/env bash
-# Prototype 02 MSX/MSX-DOS launcher
-#
-# Flow:
-#  1) (optional) build program
-#  2) copy MSX-DOS boot disk to a writable work path
-#  3) add compiled COM file using rdedisktool
-#  4) run openMSX with the copied boot disk
-#
-# Environment overrides:
-#   RDEDISKTOOL    — rdedisktool 바이너리 경로
-#   BOOT_DISK_SRC  — 원본 부트디스크 경로 (기본: diskwork/bootdisk/msx/msxdos23.dsk)
-#   PROGRAM_FILE   — 주입할 .COM 파일 경로 (기본: build/PROTO02.COM)
-#   PROGRAM_NAME   — 디스크 내 파일명 (기본: PROTO02.COM)
-#   WORK_DIR       — 임시 디스크 작업 디렉토리
-#   AUTO_BUILD     — 1이면 실행 전 compile.sh build 자동 수행
-
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-first_existing_file() {
-    local p; for p in "$@"; do [[ -f "$p" ]] && printf '%s\n' "$p" && return 0; done; return 1
-}
-first_existing_exec() {
-    local p; for p in "$@"; do [[ -x "$p" ]] && printf '%s\n' "$p" && return 0; done; return 1
-}
-
-RDEDISKTOOL="${RDEDISKTOOL:-}"
-BOOT_DISK_SRC="${BOOT_DISK_SRC:-}"
-PROGRAM_FILE="${PROGRAM_FILE:-}"
-PROGRAM_NAME="${PROGRAM_NAME:-PROTO02.COM}"
-WORK_DIR="${WORK_DIR:-/tmp/prototype_02_msx_msxdos}"
-AUTO_BUILD="${AUTO_BUILD:-0}"
-
-# rdedisktool 탐색 (build_local → build → PATH)
-if [[ -z "$RDEDISKTOOL" ]]; then
-    RDEDISKTOOL="$(first_existing_exec \
-        "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool" \
-        "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool" \
-        "$(command -v rdedisktool 2>/dev/null || true)" \
-    )" || RDEDISKTOOL="$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool"
-fi
-
-# 부트디스크 원본 경로
-if [[ -z "$BOOT_DISK_SRC" ]]; then
-    BOOT_DISK_SRC="$(first_existing_file \
-        "$PROJECT_ROOT/diskwork/bootdisk/msx/msxdos23.dsk" \
-    )" || BOOT_DISK_SRC="$PROJECT_ROOT/diskwork/bootdisk/msx/msxdos23.dsk"
-fi
-
-# 컴파일된 프로그램 경로
-if [[ -z "$PROGRAM_FILE" ]]; then
-    PROGRAM_FILE="$(first_existing_file \
-        "$SCRIPT_DIR/build/PROTO02.COM" \
-        "$SCRIPT_DIR/build/PROTO02.com" \
-    )" || PROGRAM_FILE="$SCRIPT_DIR/build/PROTO02.COM"
-fi
-
-# 자동 빌드 (선택)
-if [[ "$AUTO_BUILD" == "1" ]]; then
-    if [[ -x "$SCRIPT_DIR/compile.sh" ]]; then
-        echo "[run] building program first (compile.sh build)"
-        "$SCRIPT_DIR/compile.sh" build
-    else
-        echo "Error: AUTO_BUILD=1 but compile.sh is not executable"
-        exit 1
-    fi
-fi
-
-# 사전 조건 검증
-[[ -x "$RDEDISKTOOL" ]] || { echo "Error: rdedisktool not found at $RDEDISKTOOL"; exit 1; }
-[[ -f "$BOOT_DISK_SRC" ]] || { echo "Error: boot disk not found at $BOOT_DISK_SRC"; exit 1; }
-[[ -f "$PROGRAM_FILE" ]] || { echo "Error: program not found at $PROGRAM_FILE (run ./compile.sh build)"; exit 1; }
-
-# Step 1: 부트디스크를 임시 경로로 복사 (원본 보호)
-mkdir -p "$WORK_DIR"
-TEST_BOOT_DISK="$WORK_DIR/prototype_02_msxdos_$(date +%Y%m%d_%H%M%S).dsk"
-cp "$BOOT_DISK_SRC" "$TEST_BOOT_DISK"
-echo "[run] copied boot disk: $BOOT_DISK_SRC -> $TEST_BOOT_DISK"
-
-# Step 2: 이전 버전 제거 + 새 .COM 주입
-echo "[run] remove previous $PROGRAM_NAME if exists"
-"$RDEDISKTOOL" --bootdisk-mode off delete "$TEST_BOOT_DISK" "$PROGRAM_NAME" >/dev/null 2>&1 || true
-
-echo "[run] add program: $PROGRAM_FILE -> $PROGRAM_NAME"
-"$RDEDISKTOOL" --bootdisk-mode strict add \
-    "$TEST_BOOT_DISK" "$PROGRAM_FILE" "$PROGRAM_NAME"
-
-# Step 3: openMSX 실행 (BOOT_DISK 환경변수로 부팅 디스크 지정)
-echo "[run] launching openMSX with Disk A: $TEST_BOOT_DISK"
-exec env BOOT_DISK="$TEST_BOOT_DISK" "$PROJECT_ROOT/run_openmsx_msxdos2.sh"
-```
-
-**스크립트 흐름 상세**:
-
-| 단계 | 동작 | 원본 보호 |
-|------|------|----------|
-| Step 1 | `msxdos23.dsk` → `/tmp` 복사 | 원본 부트디스크 변경 없음 |
-| Step 2a | `rdedisktool --bootdisk-mode off delete` | 이전 .COM 제거 (시스템 파일 무관) |
-| Step 2b | `rdedisktool --bootdisk-mode strict add` | .COM 주입 (시스템 파일 덮어쓰기 차단) |
-| Step 3 | `BOOT_DISK=... run_openmsx_msxdos2.sh` | 프로젝트 루트 실행 스크립트에 위임 |
-
-> **`--bootdisk-mode` 플래그 설명** (DEVELOPER_MSX_HOWTO.md §3.2 참조):
-> - `strict`: MSX-DOS 시스템 파일(MSXDOS2.SYS, COMMAND2.COM 등)을 보호.
->   동일 이름 파일 추가 시 오류 반환. 부트디스크에 사용자 파일 추가 시 안전.
-> - `off`: 보호 해제. delete 명령에서 사용자 파일만 제거할 때 사용.
-
-> **openMSX 실행 전 필요 조건** (DEVELOPER_MSX_HOWTO.md §5 참조):
-> 1. openMSX 바이너리: `Emulator/openMSX/derived/x86_64-linux-opt/bin/openmsx`
-> 2. 부트디스크: `diskwork/bootdisk/msx/msxdos23.dsk`
-> 3. GT BIOS ROM: `~/.openMSX/share/systemroms/machines/panasonic/` 에 설치
-
-### 8.5 빌드→디스크→실행 전체 워크플로
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  소스 코드                                                       │
-│  src/main.c, logic.c, render.c, input.c, help.c, room_data.c   │
-└──────────────────────┬──────────────────────────────────────────┘
-                       │  ./compile.sh build
-                       │  (zcc +msx -subtype=msxdos2 ... → PROTO02.COM)
-                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  build/PROTO02.COM   (MSX-DOS 실행파일, ~45KB)                   │
-└──────────────────────┬──────────────────────────────────────────┘
-                       │  ./compile.sh disk
-                       │  (cp msxdos23.dsk → build/*.dsk)
-                       │  (rdedisktool --bootdisk-mode strict add)
-                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  build/prototype_02_MSX_MSXDOS.dsk                              │
-│  ├── MSXDOS2.SYS    (시스템)                                     │
-│  ├── COMMAND2.COM    (시스템)                                     │
-│  └── PROTO02.COM     (게임)                                      │
-└──────────────────────┬──────────────────────────────────────────┘
-                       │  ./compile.sh run
-                       │  (run_openmsx_prototype_02_msx_msxdos_diskaddtest.sh)
-                       │  → cp msxdos23.dsk → /tmp/
-                       │  → rdedisktool add PROTO02.COM
-                       │  → BOOT_DISK=/tmp/... run_openmsx_msxdos2.sh
-                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  openMSX (Panasonic_FS-A1GT)                                    │
-│  Disk A: /tmp/prototype_02_msxdos/prototype_02_msxdos_*.dsk     │
-│                                                                  │
-│  부팅 후 MSX-DOS 프롬프트에서:                                     │
-│  A:\> PROTO02                                                    │
-│  → SCREEN 2 전환 → 게임 실행                                      │
-│  → Q키 종료 → SCREEN 0 복귀 → MSX-DOS 프롬프트                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**일상적 개발 사이클**:
-
-```bash
-# 방법 1: 단계별 실행
-./compile.sh build          # 컴파일만
-./compile.sh disk           # 빌드 + 디스크 생성
-./compile.sh run            # 에뮬레이터 실행
-
-# 방법 2: 일괄 실행
-./compile.sh all            # clean → build → disk
-
-# 방법 3: 자동 빌드 + 실행 (빠른 테스트용)
-AUTO_BUILD=1 ./run_openmsx_prototype_02_msx_msxdos_diskaddtest.sh
-```
-
-> **openMSX 에뮬레이터 조작** (DEVELOPER_MSX_HOWTO.md §5 참조):
-> - `F9` — OSD 메뉴 (디스크 교체 등)
-> - `F12` — 일시정지/재개
-> - 부팅 후 `DIR` 명령으로 디스크 내 파일 목록 확인
-> - `PROTO02` 입력으로 게임 실행
 
 ---
 
-## 9. 구현 단계
+## 9. 구현 단계 (전체 완료)
 
-### Phase 1: 기본 프레임워크 (SCREEN 2 + 타일 렌더링)
+모든 Phase가 구현 완료되었으며, ROM/DOS 듀얼 빌드로 확장됨.
 
-**목표**: SCREEN 2에서 타일 기반 화면 출력 확인
-
-1. 폴더 구조 생성 (`Examples/prototype_02_MSX_MSXDOS/`)
-2. ubox-msx-lib-z88dk 빌드 확인 (라이브러리 포팅 선행 완료 전제)
-3. 타일 데이터 정의 (`tiles.h` — 벽, 바닥, 빈 타일)
-4. 폰트 데이터 정의 (`font.h` — 숫자, 대문자 기본셋)
-5. `render_init()` 구현 — SCREEN 2 전환, 타일셋 로드
-6. `render_print()` 구현 — 타일 기반 문자열 출력
-7. `render_draw_map()` 스텁 — 10×10 고정 패턴 출력
-8. `main.c` 최소 루프 — 초기화 → 화면 출력 → 대기
-9. `compile.sh` 작성 (`zcc +msx -subtype=msxdos2`) + 빌드 확인
-10. openMSX에서 SCREEN 2 화면 출력 확인
-
-**산출물**: 정적 타일 화면이 표시되는 .COM 파일
-
-### Phase 2: 맵 렌더링 + 카메라
-
-**목표**: 100×100 룸에서 10×10 뷰포트 렌더링
-
-1. `room_data.c/h` 복사 (prototype_01에서)
-2. `engine.h` 적용 (VIEW_W=10, VIEW_H=10)
-3. `logic.c` 이식 — 카메라 로직 (VIEW 상수만 변경)
-4. `render_draw_map()` 완성 — char→tile 변환 + 뷰포트 렌더링
-5. 테두리 타일 렌더링
-6. 좌표/룸이름 표시
-7. 카메라 이동 테스트 (고정 위치에서 맵 확인)
-
-**산출물**: 룸 맵이 10×10 뷰포트에 타일로 표시됨
-
-### Phase 3: 플레이어 + 이동
-
-**목표**: 키보드 입력으로 플레이어 이동
-
-1. 스프라이트 초기화 + 플레이어 스프라이트 등록
-2. 입력 처리 구현 (`ubox_read_keys` 기반)
-3. `logic_try_move()` 연결
-4. 카메라 추적 + 맵 재렌더링
-5. 스프라이트 위치 갱신
-6. 키 반복 딜레이 적용
-7. 벽/상자 충돌 확인
-
-**산출물**: WASD로 던전 탐색 가능
-
-### Phase 4: 상호작용 (문/계단/상자)
-
-**목표**: prototype_01과 동일한 상호작용 구현
-
-1. 프롬프트 UI (`render_prompt_yes_no`)
-2. 문(Door) 상호작용 + 룸 전환
-3. 계단(Stair) 상호작용 + 층 이동
-4. 상자(Box) 상호작용 + 효과/아이템 표시
-5. 상태 메시지 표시 영역 구현
-6. 메시지 영역 (효과 텍스트, 아이템 목록) 구현
-
-**산출물**: 완전한 상호작용 시스템
-
-### Phase 5: 도움말 + 마무리
-
-**목표**: 도움말 화면 + 최종 정리
-
-1. 도움말 화면 구현 (타일 기반 텍스트 스크롤)
-2. 종료(Q) 처리 + SCREEN 0 복귀
-3. 키 힌트 라인 표시
-4. 엣지 케이스 테스트 (맵 경계, 룸 전환)
-5. compile.sh 전체 타겟 구현 (clean, build, disk, test, run, all)
-6. 에뮬레이터 실행 스크립트 작성
-7. README.txt 작성
-
-**산출물**: 완성된 prototype_02
+| Phase | 목표 | 상태 |
+|-------|------|------|
+| Phase 1 | SCREEN 2 + 타일 렌더링 프레임워크 | 완료 |
+| Phase 2 | 30×24 맵 렌더링 + 10×10 뷰포트 카메라 | 완료 |
+| Phase 3 | 플레이어 스프라이트 + WASD 이동 | 완료 |
+| Phase 4 | 문/계단/상자 상호작용 + 프롬프트 | 완료 |
+| Phase 5 | 도움말 + 몬스터 + ROM/DOS 분리 + 마무리 | 완료 |
 
 ---
 
@@ -1396,26 +585,31 @@ gcc -DVIEW_W=10 -DVIEW_H=10 -o test_camera tests/host/test_camera.c
 | 키 입력 누락 | 반응 불량 | ISR 기반 키 상태 폴링 주기 조정 |
 | 폰트 타일 수 부족 | 소문자/특수문자 표시 불가 | 대문자만 사용, 최소 특수문자셋으로 제한 |
 
-### 11.1 메모리 예산 (MSX-DOS TPA ≈ 55KB)
+### 11.1 메모리 예산 (MSX-DOS2 TPA ≈ 48.9KB)
+
+> 실측 기준: PROTO02.COM = 18,346 bytes, PROTO02.rom raw = 15,325 bytes
+> BSS = 178 bytes (PROTO02_BSS.bin), DATA = 2,233 bytes (PROTO02_DATA.bin)
 
 | 영역 | 추정 크기 | 산출 근거 |
 |------|----------|----------|
-| 코드 (main+logic+render+input+help) | ~6KB | prototype_01 기준 + SCREEN 2 렌더러 추가분 |
-| ubox.lib 링크 코드 | ~2KB | VDP/ISR/키보드 BIOS 래퍼 (Z80 asm, 소형) |
-| room_data (그리드) | 30.3KB | 3 × 100 × 101 bytes (실측) |
-| room_data (테이블) | ~0.9KB | Door/Stair/Box 구조체 + 문자열 테이블 |
-| 타일셋 (패턴+색상) | ~4KB | 256 타일 × 16 bytes (전체 슬롯) |
-| 스프라이트 데이터 | 8B | 8×8 패턴 1개 |
-| 스택 + 전역변수 | ~2KB | GameState + 입력 버퍼 + 도움말 버퍼 |
-| **합계** | **~45KB** | TPA 내 수용 가능 (여유 ~10KB) |
+| 코드 (main+logic+render+input+help+monster) | ~8.7KB | 빌드 결과 역산 (18,346 - 데이터 합계) |
+| ubox.lib 링크 코드 | ~2KB | VDP/키보드/스프라이트 BIOS 래퍼 (Z80 asm) |
+| z88dk 런타임/CRT | ~0.4KB | CRT0 + stdlib 스텁 |
+| g_room_grids (그리드) | 2.2KB | 3 × 24 × 31 bytes (30×24 맵, null 포함) |
+| 룸 메타데이터 (구조체) | ~0.6KB | Door/Stair/Box/Monster 구조체 배열 |
+| 문자열 테이블 | ~0.35KB | placed_by + effects + names + items + 포인터 |
+| 타일셋 (패턴+색상) | ~4.1KB | tileset_patterns[2048] + colors[2048] + sprite[8] |
+| BSS (전역변수) | ~0.2KB | GameState + 입력 버퍼 (빌드 결과: 178B) |
+| 런타임 스택 | ~1KB | z88dk 기본 스택 (SP 초기값 기준) |
+| **합계** | **~19.5KB** | COM=18,346 + BSS=178 + 스택≈1,024 |
+| **TPA 여유** | **~29.4KB** | 48,896 - 19,500 |
 
-> **주의**: room_data 그리드가 전체의 ~67%를 차지한다. TPA가 부족할 경우:
-> 1. 룸 3개 → 2개로 축소 (10KB 절감)
-> 2. 그리드 크기 100×100 → 50×50 (22KB 절감)
-> 3. RLE 압축 후 런타임 해제 (구현 복잡도 증가)
+> **룸 추가 영향**: 룸당 ~935 bytes 증가 (그리드 744 + 메타 191).
+> 외부화 없이 ~33룸이 TPA 한계. Appendix B Phase 1 외부화 후 ~170룸까지 가능.
 >
-> **호환성**: room_data.c는 순수 ISO C89/C99 코드로, z88dk sccz80에서
-> **수정 없이** 직접 컴파일 가능 (prototype_01에서 검증됨).
+> **ROM 빌드**: 32KB ROM 내 15,325 bytes 사용 중, ~21룸이 32KB 한계.
+>
+> 상세 분석은 Appendix B §B.0 참조.
 
 ---
 
@@ -1471,139 +665,23 @@ player_attr.attr = 8;  // 색상: Red(8)
 
 ### A.3 32열 텍스트 줄바꿈 처리
 
-prototype_01은 40열, prototype_02는 32열 (SCREEN 2 타일 폭).
+prototype_01은 40열, prototype_02는 32열. `render_print_wrap()` 함수로 단어 단위 줄바꿈 구현 완료 (`src/render.c` 참조).
 
-**영향받는 요소**:
-- 상태 메시지 영역: 19자 폭 (col 13~31)
-- 메시지 영역: 32자 폭 (col 0~31)
-- 도움말: 32자 폭 (기존 40자 → 32자로 축소)
-
-**장문 메시지 처리 — 단어 단위 줄바꿈 함수**:
-
-```c
-// 최대 width자로 줄바꿈하여 여러 줄 출력
-// 반환값: 사용한 행 수
-uint8_t render_print_wrap(uint8_t x, uint8_t y, const char *text,
-                          uint8_t width, uint8_t max_rows) {
-    uint8_t row = 0;
-    uint8_t col = 0;
-    const char *next_space;
-    uint8_t word_len;
-
-    while (*text && row < max_rows) {
-        // 단어 끝 찾기
-        next_space = text;
-        while (*next_space && *next_space != ' ') next_space++;
-        word_len = (uint8_t)(next_space - text);
-
-        // 단어가 width를 초과하면 width에서 잘라냄 (방어 코드)
-        if (word_len > width) word_len = width;
-
-        if (col + word_len > width && col > 0) {
-            // 다음 줄로
-            row++;
-            col = 0;
-            if (row >= max_rows) break;  // 영역 초과 방지
-        }
-        // 현재 줄에 단어 출력
-        render_print_n(x + col, y + row, text, word_len);
-        col += word_len;
-        text = next_space;
-        if (*text == ' ') { text++; col++; }  // 공백 건너뛰기
-    }
-    // row가 max_rows에 도달하여 break된 경우 보정
-    return (row >= max_rows) ? max_rows : row + 1;
-}
-```
-
-> **주의**: `render_print_wrap()`은 단어 사이 공백을 타일로 출력하지 않고 `col++`만 한다.
-> 따라서 출력 대상 영역을 사전에 `render_clear_area()`로 초기화해야 이전 텍스트 잔상이 남지 않는다.
-
-**상태 영역(19자) 대응**: 긴 상태 메시지는 줄바꿈:
-- `"Enter Crystal Cavern?"` (22자) → `"Enter Crystal"` + `"Cavern?"` (2줄)
-- `"Open box by Goblin Trickster?"` (30자) → 2줄
-
-**효과 메시지(32자) 대응**:
-- `"Dust swirls as the lid opens. Nothing unusual happens."` (54자) → 2줄
-- 메시지 영역 8행이므로 효과+아이템 모두 수용 가능
+- 상태 영역: 19자 폭 (col 13~31), 메시지 영역: 32자 폭 (col 0~31)
+- 공백은 타일로 출력하지 않으므로 `render_clear_area()` 사전 초기화 필수
 
 ### A.4 도움말 시스템 32열 적응
 
-prototype_01의 도움말은 `HELP_LINE_WIDTH=41` (40열+null).
-prototype_02에서 변경 필요:
-
-```c
-// help.h 변경
-#define HELP_LINE_WIDTH   33    // 32열 + null terminator (버퍼 크기)
-#define HELP_DISPLAY_ROWS 23    // SCREEN 2: 24행 - 1행(스크롤 안내) = 23행
-
-// help.c 변경 — WRAP_WIDTH도 반드시 변경해야 함!
-// prototype_01은 HELP_LINE_WIDTH(41)과 별도로 WRAP_WIDTH(40)을 정의한다.
-// wrap_and_add() 함수가 WRAP_WIDTH를 직접 참조하므로, 이 값도 32로 변경 필수.
-#define WRAP_WIDTH        32    // 줄바꿈 폭 (= HELP_LINE_WIDTH - 1)
-```
-
-도움말 텍스트 중 32자 초과 행은 `wrap_and_add()`에 의해 자동 줄바꿈된다.
-기존 도움말 원문 중 32자에서 부자연스럽게 잘리는 행이 없는지 텍스트 검토도 필요.
+- `HELP_LINE_WIDTH=33` (32열+null), `HELP_DISPLAY_ROWS=23`, `WRAP_WIDTH=32`
+- 32자 초과 행은 `wrap_and_add()`에 의해 자동 줄바꿈
 
 ### A.5 VRAM 갱신 최적화 — 더티 타일 추적
 
-매 프레임 100타일(10×10) 전체를 갱신하면 `ubox_put_tile()` × 100회 BIOS 호출이 발생한다.
+`src/render.c`, `src/render_dos.c` 참조. 구현 완료.
 
-**최적화 1: 변경분만 갱신**
-
-```c
-static uint8_t prev_map[MAP_VIEW_H][MAP_VIEW_W];
-
-void render_draw_map(const GameState *gs) {
-    uint8_t dy, dx, tile;
-    for (dy = 0; dy < MAP_VIEW_H; dy++) {
-        for (dx = 0; dx < MAP_VIEW_W; dx++) {
-            tile = char_to_map_tile(gs->cam_x + dx, gs->cam_y + dy, ...);
-            if (tile != prev_map[dy][dx]) {
-                ubox_put_tile(MAP_ORIGIN_X + dx, MAP_ORIGIN_Y + dy, tile);
-                prev_map[dy][dx] = tile;
-            }
-        }
-    }
-}
-```
-
-- 플레이어가 이동하지 않으면 갱신 0회
-- 카메라 미이동(뷰포트 내 이동): 맵 타일 변경 없으므로 갱신 0회
-- 카메라 이동 시: prev_map은 화면좌표 기반이므로 인접 타일이 동일 타입일 때만 스킵.
-  동일 지형이 많은 맵(벽/바닥 반복)에서 효과적이나, worst case는 100타일 전체 갱신
-- 룸 전환/도움말 복귀 시: `render_redraw_all()` 호출 → 전체 갱신 (prev_map 초기화)
-
-**Full Redraw 시퀀스** (룸 전환, 도움말 복귀 시):
-```c
-void render_redraw_all(const GameState *gs) {
-    ubox_disable_screen();           // 화면 OFF — 깜빡임 방지
-    ubox_fill_screen(0);             // 전체 화면 클리어 (도움말 텍스트 잔상 제거)
-    memset(prev_map, 0xFF, sizeof(prev_map));  // 더티 캐시 무효화
-    render_draw_border();            // 테두리 재렌더링
-    render_draw_map(gs);             // 맵 전체 갱신 (100타일)
-    render_update_status(gs);        // 좌표, 방이름, 상태 메시지 복원
-    render_print(0, 23, "WASD:move 1/0:YN H:help Q:quit");  // 키 힌트
-    render_update_player(gs);        // 스프라이트 위치
-    ubox_enable_screen();            // 화면 ON
-}
-```
-
-**최적화 2: VBlank 중 일괄 전송**
-
-`ubox_write_vm()`으로 Name Table(0x1800)에 직접 쓰기:
-
-```c
-// 한 행 10타일을 VRAM에 직접 쓰기
-uint8_t row_buf[MAP_VIEW_W];
-for (dx = 0; dx < MAP_VIEW_W; dx++)
-    row_buf[dx] = char_to_map_tile(...);
-ubox_write_vm((uint8_t *)(0x1800 + (MAP_ORIGIN_Y + dy) * 32 + MAP_ORIGIN_X),
-              MAP_VIEW_W, row_buf);
-```
-
-이 방식이 `ubox_put_tile()` 10회 호출보다 빠르다 (BIOS 오버헤드 감소).
+- **더티 타일**: `prev_map[10][10]` 캐시로 변경분만 `ubox_put_tile()` 갱신
+- **Full Redraw**: disable_screen → fill_screen(0) → prev_map 무효화(0xFF) → border+map+status+player → enable_screen
+- **VBlank 일괄 전송**: `ubox_write_vm()` 으로 Name Table 직접 쓰기 (put_tile보다 빠름)
 
 ### A.6 기능 완전성 체크리스트
 
@@ -1630,137 +708,1091 @@ prototype_01의 모든 기능이 prototype_02에서 재현되는지 확인:
 
 ### A.7 ubox ISR 초기화 — MSX-DOS 환경 주의사항
 
-`ubox_init_isr()`는 내부적으로:
-1. `HTIMI_HOOK` (0xFD9F)에 커스텀 핸들러를 등록
-2. `SCNCNT` (0xF3F6) = 0 으로 설정하여 **BIOS 키보드 스캐닝을 비활성화**
-3. `REPCNT` (0xF3F7) = 0 으로 설정하여 키 반복 비활성화
+`src/render.c`의 `render_cleanup()` 참조. 구현 완료.
 
-**MSX-DOS 영향**:
-- BIOS 키보드 비활성화 후 MSX-DOS의 키 입력이 동작하지 않음
-- `render_cleanup()` 에서 **BIOS 키보드를 복원해야** MSX-DOS 프롬프트가 정상 작동
+**핵심 요약**:
+- `ubox_init_isr()`는 HTIMI_HOOK(0xFD9F) 설치 + BIOS 키보드 비활성화(SCNCNT=0)
+- 종료 시 반드시 복원: HTIMI_HOOK에 RET(0xC9) 기록 → BIOS INITXT(0x006C) 호출
+- 미복원 시: TPA 재사용 후 VBlank가 쓰레기 코드로 점프 → 시스템 크래시
+- **DOS 빌드(render_dos.c)**: ISR 미사용, halt 기반 대기이므로 이 문제 없음
+
+### A.8-A.10 빌드 검증 (통과 완료)
+
+Phase 0 사전 검증(ubox 빌드, MSX-DOS 최소 테스트, SCREEN 2 전환, room_data 링크) 모두 통과.
+`compile.sh`, `compile_dos.sh`에 check_z88dk/check_ubox 검증 포함.
+
+---
+
+## Appendix B: 맵/타일 데이터 외부 파일 분리 (DOS 빌드 전용)
+
+> 분석일: 2026-03-01
+> 목적: 맵 그리드 데이터와 타일 패턴/색상을 MSX-DOS 디스크 파일로 분리하여
+> 더 많은 룸 추가와 룸별 타일셋 교체를 가능하게 한다.
+> 참고: Apple II prototype_02_AppleII_prodos Appendix B의 MSX 대응 구현.
+> **구현 상태: Phase 1 완료** (2026-03-01). ROM/DOS 빌드 모두 정상 동작 확인.
+> 실측 결과: COM 18,346 → 17,334 bytes (-1,012B), 디스크 데이터 ROOM00-02 + TILES0 정상 로드.
+
+### B.0 COM/ROM 크기 분석 및 외부화 동기
+
+> 실측 기준: PROTO02.COM = 18,346 bytes, PROTO02.rom = 32,768 bytes (raw 15,325 bytes)
+> BSS = 178 bytes, DATA = 2,233 bytes
+
+#### B.0.1 COM 바이너리 구성 분석
+
+| 구성 요소 | 바이트 | 비율 | 비고 |
+|-----------|--------|------|------|
+| **tileset 배열** | **4,096** | **22.3%** | tileset_patterns[2048] + tileset_colors[2048] |
+| **g_room_grids** | **2,232** | **12.2%** | 3룸 × 24행 × 31B (null 포함) |
+| 룸 메타데이터 (구조체) | ~570 | 3.1% | doors(72) + stairs(30) + boxes(330) + monsters(48) + counts(12) + names(72) + z/start(9) |
+| 문자열 테이블 | ~355 | 1.9% | placed_by + box_effects + monster_names + item_names + 포인터 배열 |
+| 게임 코드 (C 모듈) | ~8,700 | 47.4% | logic + render + input + help + monster + main |
+| ubox.lib 링크 코드 | ~2,000 | 10.9% | VDP/키보드/스프라이트 BIOS 래퍼 |
+| z88dk 런타임/CRT | ~400 | 2.2% | CRT0, stdlib 스텁 |
+| **합계** | **~18,353** | **100%** | (±7 bytes 반올림 오차) |
+
+> **핵심 관찰**: 초기화 데이터(tileset + grids + metadata + strings)가 COM의 ~40%를 차지.
+> 룸 추가 시 데이터 증가가 COM 크기의 지배 요인이 된다.
+
+#### B.0.2 TPA 한계 분석
+
+```
+MSX-DOS2 TPA 메모리 맵:
+$0100 ┬─────────────────── COM 로드 시작
+      │  CODE + DATA (18,346 bytes)
+$47AA ├─────────────────── COM 끝
+      │  BSS (178 bytes)
+$485C ├─────────────────── BSS 끝
+      │  (가용 힙/스택 영역)
+      │  ~29,600 bytes 여유
+$BFFF ┴─────────────────── TPA 상한 (page 3 시작 직전)
+
+TPA 총 크기: $BFFF - $0100 + 1 = 48,896 bytes
+현재 사용: ~18,524 bytes (COM + BSS)
+현재 여유: ~30,372 bytes
+```
+
+#### B.0.3 룸 증가에 따른 COM 크기 예측
+
+룸당 증가량:
+
+| 항목 | 룸당 증가 |
+|------|----------|
+| g_room_grids | +744 bytes (24 × 31, null 포함) |
+| g_room_names | +24 bytes |
+| g_room_z + start_x + start_y | +3 bytes |
+| g_doors (MAX_DOORS=4, DoorMsx=6B) | +24 bytes |
+| g_stairs (MAX_STAIRS=2, StairMsx=5B) | +10 bytes |
+| g_boxes (MAX_BOXES=10, BoxMsx=11B) | +110 bytes |
+| g_monsters (MAX_MONSTERS=4, MonsterDef=4B) | +16 bytes |
+| count 배열 4개 | +4 bytes |
+| **룸당 총 증가** | **~935 bytes** (그리드 744 + 메타 191) |
+
+**외부화 없는 경우** (모든 데이터 인라인):
+
+| 룸 수 | COM 크기 (추정) | TPA 여유 | 상태 |
+|--------|----------------|----------|------|
+| 3 (현재) | 18,346 | 30,372 | OK |
+| 10 | 24,891 | 23,827 | OK |
+| 20 | 34,241 | 14,477 | 주의 |
+| 30 | 43,591 | 5,127 | 위험 |
+| **33** | **46,396** | **2,322** | **임계** |
+| 35 | 48,261 | 457 | 거의 불가 |
+
+**Phase 1 외부화 후** (그리드만 디스크 분리, 메타 COM 잔류):
+
+| 룸 수 | COM 크기 (추정) | TPA 여유 | 상태 |
+|--------|----------------|----------|------|
+| 3 | ~16,539 | 32,179 | OK |
+| 50 | ~25,543 | 23,175 | OK |
+| 100 | ~35,093 | 13,625 | OK |
+| 150 | ~44,643 | 4,075 | 위험 |
+| **170** | **~48,463** | **255** | **임계** |
+
+> Phase 1만으로 최대 룸 수가 33 → **~170**으로 5배 확장.
+
+#### B.0.4 ROM 빌드 크기 예측
+
+```
+32KB ROM (32,768 bytes):
+$4000 ┬─────────────────── ROM 시작
+      │  CODE + DATA (15,325 bytes)
+$7BED ├─────────────────── 현재 끝
+      │  17,443 bytes 여유
+$BFFF ┴─────────────────── ROM 끝
+```
+
+ROM은 디스크 접근 불가 → 모든 데이터 인라인 필수:
+
+| 룸 수 | raw 크기 | ROM 여유 | 상태 |
+|--------|----------|----------|------|
+| 3 (현재) | 15,325 | 17,443 | OK |
+| 10 | 21,870 | 10,898 | OK |
+| 15 | 26,545 | 6,223 | OK |
+| 20 | 31,220 | 1,548 | 위험 |
+| **21** | **32,155** | **613** | **임계** |
+| 22 | 33,090 | -322 | 초과 |
+
+> 32KB ROM 최대: **~21룸**. 그 이상은 MegaROM 또는 그리드 압축 필요.
+
+### B.1 핵심 제약
+
+**ROM 빌드는 디스크 접근 불가** → DOS 빌드만 외부화 대상.
+ROM 빌드는 현재와 동일하게 인라인 데이터 유지.
+
+### B.1a 리소스 분류 — COM 내장 vs 디스크 분리 전체 목록
+
+#### B.1a.1 Phase 1 분류표 (본 Appendix B 구현 범위)
+
+| 데이터 | 바이트 | 현재 위치 | Phase 1 후 위치 | 이유 |
+|--------|--------|----------|----------------|------|
+| g_room_grids | 2,232 | COM (RODATA) | **디스크 (ROOM00-02)** | 룸당 744B, 최대 확장 대상 |
+| 맵 타일 0-8 (pattern+color) | 144 | COM (tileset 배열 내) | **디스크 (TILES0) → 런타임 덮어쓰기** | 룸별 타일셋 교체 인프라 |
+| tileset_patterns[2048] | 2,048 | COM (RODATA) | **COM 잔류 (DATA, mutable)** | 보더/폰트 기본값 보유, 맵타일 영역만 덮어쓰기 |
+| tileset_colors[2048] | 2,048 | COM (RODATA) | **COM 잔류 (DATA, mutable)** | 동일 |
+| 룸 메타데이터 전체 | ~570 | COM (RODATA) | **COM 잔류** | 191B/룸, 170룸까지 TPA 내 |
+| 문자열 테이블 전체 | ~355 | COM (RODATA) | **COM 잔류** | 전체 공유, 증가율 낮음 |
+| player_sprite | 8 | COM (RODATA) | **COM 잔류** | 단일 스프라이트 |
+| 게임 코드 | ~8,700 | COM (CODE) | **COM 잔류** | 분리 불가 |
+| ubox.lib + CRT | ~2,400 | COM (CODE) | **COM 잔류** | 분리 불가 |
+
+#### B.1a.2 Phase 2 후보 (본 Appendix 범위 아님)
+
+| 데이터 | 바이트 | Phase 2 위치 | 트리거 조건 |
+|--------|--------|-------------|------------|
+| tileset 전체 배열 2개 | 4,096 | 디스크 (TILESET 파일) | 복수 풀 타일셋이 필요할 때 |
+| 보더 타일 (16-23) | 128 | 디스크 (TILESET에 포함) | tileset 전체 외부화 시 |
+| 폰트 타일 (32-127) | 1,536 | 디스크 (TILESET에 포함) | tileset 전체 외부화 시 |
+
+#### B.1a.3 Phase 3 후보
+
+| 데이터 | 바이트 | Phase 3 위치 | 트리거 조건 |
+|--------|--------|-------------|------------|
+| g_doors + g_stairs + g_boxes + g_monsters | 룸당 ~160B | 디스크 (RMETAnn 파일) | 150룸 이상 |
+| g_room_names | 룸당 24B | 디스크 (RMETAnn에 포함) | 동시 외부화 |
+| 문자열 테이블 | ~355+ | 디스크 (STRINGS 파일) | 300+ 고유 문자열 |
+
+### B.2 현재 데이터 구조 분석
+
+#### B.2.1 그리드 데이터 (room_data.c)
 
 ```c
-void render_cleanup(void) {
-    // 스프라이트 숨기기 (모든 필드 명시 초기화)
-    struct sprite_attr hide;
-    hide.y = 0xD0;      // 종료 마커
-    hide.x = 0;
-    hide.pattern = 0;
-    hide.attr = 0;
-    ubox_set_sprite_attr(&hide, 0);
+const char g_room_grids[ROOM_COUNT][ROOM_H][ROOM_W + 1] = {
+    {   /* Room 0: Abandoned Hall */
+        "##############################",
+        "#...............##............#",
+        /* ... 24 rows × 30 chars + null terminator */
+    },
+    /* ... 3 rooms total */
+};
+```
 
-    // HTIMI 훅 복원 (필수!)
-    // ubox_init_isr()가 HTIMI_HOOK(0xFD9F)에 JP ubox_isr을 설치했으므로,
-    // 프로그램 종료 전 반드시 복원해야 한다. 미복원 시 TPA 재사용 후
-    // VBlank 인터럽트가 쓰레기 코드로 점프하여 시스템 크래시.
-    // MSX BIOS 기본 HTIMI 훅은 RET(0xC9) 한 바이트.
-    __asm
-    di
-    ld a, #0xC9            ; RET opcode
-    ld (#0xFD9F), a        ; HTIMI_HOOK 기본값 복원
-    ei
-    __endasm;
+| 항목 | 값 |
+|------|------|
+| 룸 크기 | 30×24 타일 |
+| 룸당 바이트 | 720 bytes (30 × 24, null terminator 제외) |
+| 총 그리드 데이터 | 2,160 bytes (3룸 × 720B) |
+| 배열 크기 (null 포함) | 2,232 bytes (3 × 24 × 31) |
+| 문자 인코딩 | `.`=floor, `#`=wall, `@`=door, `<`=stair_dn, `>`=stair_up, `%`=box |
 
-    // BIOS INITXT (0x006C) 호출로 TEXT 모드 + 키보드 상태 일괄 복원
-    // INITXT는 SCREEN 0 전환, VDP 레지스터 초기화, SCNCNT/REPCNT 복원을 모두 처리한다.
-    __asm
-    call 0x006C            ; BIOS INITXT — SCREEN 0 + 키보드 복원
-    __endasm;
+#### B.2.2 g_room_grids 접근점 완전 목록
+
+| 파일:행 | 함수 | 접근 방식 | 변경 필요 |
+|---------|------|----------|----------|
+| logic.c:32 | `logic_get_tile()` | `g_room_grids[room][y][x]` 직접 | YES (`#ifdef MSXDOS`) |
+| render.c:102 | `render_draw_map()` | `g_room_grids[gs->room]` 직접 | NO (ROM 전용 파일) |
+| render_dos.c:119 | `render_draw_map()` | `g_room_grids[gs->room]` 직접 | **YES** |
+| render_dos.c:42-43 | `char_to_map_tile()` | `grid[gy][gx]` 파라미터 간접 | **YES** (flat 버퍼 비호환) |
+| monster.c:62,87 | `monster_update_all` 등 | `logic_get_tile()` 경유 | NO (간접참조, 변경 불필요) |
+
+#### B.2.3 타일 데이터 (tiles.h → render.c/render_dos.c)
+
+```c
+static const uint8_t tileset_patterns[2048] = {
+    TILE_PATTERNS_DATA,     /* tiles 0-31: 256 bytes */
+    FONT_PATTERNS_DATA,     /* tiles 32-127: 768 bytes */
+    /* tiles 128-255: zeros */
+};
+static const uint8_t tileset_colors[2048] = {
+    TILE_COLORS_DATA,       /* tiles 0-31: 256 bytes */
+    FONT_COLORS_DATA,       /* tiles 32-127: 768 bytes */
+    /* tiles 128-255: zeros */
+};
+```
+
+| 항목 | 값 |
+|------|------|
+| 맵 타일 (인덱스 0-8) | 9종 × 8B pattern + 8B color = 144 bytes |
+| 몬스터 타일 (인덱스 8) | 맵 타일에 포함 |
+| 보더 타일 (인덱스 16-23) | 8종 × 16B = 128 bytes (바이너리 유지) |
+| 폰트 타일 (인덱스 32-127) | 96종 × 16B = 1,536 bytes (바이너리 유지) |
+| VRAM 업로드 | `ubox_set_tiles()` / `ubox_set_tiles_colors()` |
+| VRAM 업로드 호출 위치 | `render_init()` (render_dos.c:67-68) — **render_redraw_all()에서는 미호출** |
+
+외부화 대상: **맵 타일 0-8** (144 bytes). 보더/폰트는 바이너리 유지.
+
+### B.3 설계
+
+#### B.3.1 전략: 컴파일 플래그 분기 (`-DMSXDOS`)
+
+기존 ROM/DOS 분리 패턴 활용:
+
+| 파일 | ROM 빌드 | DOS 빌드 |
+|------|----------|----------|
+| main.c | 사용 | — |
+| main_dos.c | — | 사용 |
+| render.c | 사용 | — |
+| render_dos.c | — | 사용 |
+| room_data.c | 사용 (인라인 그리드) | — |
+| room_data_dos.c | — | 사용 (파일 로딩) |
+| logic.c | 사용 (`#ifdef MSXDOS` 분기) | 사용 |
+
+#### B.3.2 파일 I/O
+
+z88dk MSX-DOS2에서 `open()/read()/close()` (`<fcntl.h>`) 사용.
+z88dk의 MSX-DOS2 지원은 CP/M 호환 BDOS 기반으로 안정적일 것으로 예상.
+
+> **참고**: Apple II에서 cc65 `<fcntl.h>` 파일 I/O가 실패하여 직접 ProDOS MLI ASM으로
+> 대체한 경험이 있음. z88dk에서 동일 문제 발생 시 대안:
+> 1. `fopen()/fread()/fclose()` (stdio.h)
+> 2. 직접 MSX-DOS2 BDOS 호출 (function $43/$48/$45)
+
+MSX-DOS는 CP/M 호환이므로 현재 디렉토리의 파일을 직접 이름으로 접근 가능.
+Apple II처럼 볼륨 prefix 문제가 없음.
+
+### B.4 파일 포맷
+
+#### B.4.1 ROOMnn (그리드 바이너리)
+
+```
+파일 크기: 720 bytes (30 × 24)
+레이아웃: 행 우선 (row-major), null terminator 없음
+
+offset 0x000: row 0 (30 chars)
+offset 0x01E: row 1 (30 chars)
+...
+offset 0x2C2: row 23 (30 chars)
+```
+
+기존 `g_room_grids`와 동일한 ASCII 인코딩 사용.
+
+현재 각 룸의 크기:
+```
+ROOM00: 720 bytes (Abandoned Hall)
+ROOM01: 720 bytes (Crystal Cavern)
+ROOM02: 720 bytes (Shadow Labyrinth)
+합계: 2,160 bytes
+```
+
+#### B.4.2 TILESn (타일셋 바이너리)
+
+```
+파일 크기: 144 bytes
+레이아웃:
+  [0..71]   = pattern data for tiles 0-8 (9종 × 8 bytes)
+  [72..143] = color data for tiles 0-8 (9종 × 8 bytes)
+```
+
+타일 인덱스 순서:
+```
+[0] TILE_EMPTY     [1] TILE_FLOOR     [2] TILE_WALL
+[3] TILE_DOOR_H    [4] TILE_DOOR_V    [5] TILE_STAIR_DN
+[6] TILE_STAIR_UP  [7] TILE_BOX       [8] TILE_MONSTER
+```
+
+Player 스프라이트, Border 타일(16-23), Font 타일(32-127)은 바이너리 유지.
+
+### B.5 메모리 변화 (DOS 빌드) — 정밀 분석
+
+#### B.5.1 COM 파일 크기 변화 (항목별)
+
+| 항목 | 바이트 변화 | 비고 |
+|------|-------------|------|
+| g_room_grids 제거 | **-2,232** | 3룸 × 24 × 31 RODATA 제거 |
+| grid_load_room() 코드 | +~350 | 파일명 생성 + open/read/close + 캐시 로직 (z88dk open() 3인자 + fcntl/unistd 오버헤드) |
+| render_load_tileset() 코드 | +~350 | 파일명 생성 + open/read/close + memcpy + VRAM 재업로드 (동일 오버헤드) |
+| grid_buf_get() + char_to_map_tile 재작성 | +~80 | 시그니처 변경 + flat 버퍼 인덱싱 |
+| main_dos.c 호출 추가 | +~40 | render_load_tileset 호출 3회 |
+| g_room_tileset_id[3] | +3 | 1B × 3룸 |
+| g_loaded_room_grid + g_loaded_tileset | +2 | 캐시 상태 변수 |
+| tileset 배열 const→mutable | 0 | RODATA→DATA 이동 (크기 동일, 섹션만 변경) |
+| **COM 파일 순 변화** | **~-1,012** | |
+
+| 항목 | 바이트 변화 | 비고 |
+|------|-------------|------|
+| g_grid_buffer[720] BSS | +720 | 현재 룸 그리드 버퍼 (COM 파일에 불포함) |
+| g_loaded_room_grid BSS | +1 | 캐시 상태 |
+| **BSS 순 변화** | **+721** | |
+
+#### B.5.2 크기 비교 요약
+
+| 항목 | 변경 전 | 변경 후 | 차이 |
+|------|---------|---------|------|
+| COM 파일 크기 | 18,346 | 17,334 | **-1,012** |
+| BSS 크기 | 178 | ~899 | +721 |
+| 런타임 메모리 총 사용 | 18,524 | ~18,233 | -291 |
+| TPA 여유 | 30,372 | ~30,663 | +291 |
+
+#### B.5.3 룸 확장 시 COM 증가 예산 (Phase 1 후)
+
+Phase 1 외부화 후, 룸 추가 시 COM에 남는 메타데이터만 증가:
+
+| 항목 | 룸당 증가 |
+|------|----------|
+| g_room_names | +24 bytes |
+| g_room_z + start_x + start_y | +3 bytes |
+| g_doors (4 slots × DoorMsx=6B) | +24 bytes |
+| g_stairs (2 slots × StairMsx=5B) | +10 bytes |
+| g_boxes (10 slots × BoxMsx=11B) | +110 bytes |
+| g_monsters (4 slots × MonsterDef=4B) | +16 bytes |
+| count 배열 4개 + tileset_id | +5 bytes |
+| **룸당 메타데이터 증가** | **~192 bytes** |
+
+> g_room_grids는 디스크 파일(ROOMnn)로 분리 → COM 크기에 영향 없음.
+> 744 bytes/룸 → 0 bytes/룸 절감 효과. (B.0.3 예측표 참조)
+
+#### B.5.4 디스크 파일 크기
+
+| 파일 | 크기 | 룸 추가 시 |
+|------|------|-----------|
+| ROOMnn (각) | 720 bytes | +720 bytes/룸 |
+| TILESn (각) | 144 bytes | +144 bytes/신규 타일셋 |
+| PROTO02.COM | 17,334 | +192 bytes/룸 (메타데이터) |
+
+> MSX-DOS 720KB 디스크 = 737,280 bytes. 시스템 파일(~40KB) 제외 ~697KB 가용.
+> ROOM 파일만으로도 ~968개 룸 수용 가능 (디스크 용량은 사실상 제약 아님).
+
+> **const→mutable 참고**: `static const uint8_t tileset_patterns[2048]` →
+> `static uint8_t tileset_patterns[2048]` 변경 시, z88dk sccz80에서 초기값이 있는
+> static 배열은 DATA 섹션에 배치됨. 크기는 동일하나 런타임에 memcpy로 부분 덮어쓰기 가능.
+
+### B.6 변경 파일 목록
+
+| 파일 | 작업 | 빌드 대상 |
+|------|------|-----------|
+| `src/room_data.h` | `g_room_tileset_id[]` 선언, `#ifndef MSXDOS` 가드, DOS 전용 선언 | 공유 |
+| `src/room_data.c` | `g_room_tileset_id[]` 배열 추가 | ROM (최소 변경) |
+| `src/room_data_dos.c` | **신규**: 메타데이터만 + grid_load_room() | DOS |
+| `src/logic.c` | `#ifdef MSXDOS` 분기 (logic_get_tile) | 공유 |
+| `src/render_dos.c` | char_to_map_tile/render_draw_map 재작성, render_load_tileset() 추가, tileset 배열 mutable화 | DOS |
+| `src/render.h` | `#ifdef MSXDOS` 로 render_load_tileset() 선언 추가 | 공유 |
+| `src/main_dos.c` | 초기화/룸 전환 시 render_load_tileset() 호출 추가 | DOS |
+| `compile_dos.sh` | `-DMSXDOS` 플래그, room_data_dos.c, 디스크에 데이터 파일 추가 | DOS |
+| `tools/gen_room_bin.py` | **신규**: room_data.c → ROOM00-02 바이너리 추출 | 빌드 도구 |
+| `tools/gen_tileset_msx.py` | **신규**: tiles.h → TILES0 바이너리 추출 | 빌드 도구 |
+| `src/render.c` | **변경 없음** | ROM |
+| `src/main.c` | **변경 없음** | ROM |
+| `src/monster.c` | **변경 없음** | 공유 |
+| `compile.sh` | **변경 없음** | ROM |
+
+### B.7 코드 변경 상세
+
+#### B.7.1 room_data.h — 가드 + 선언 추가
+
+현재 room_data.h:50의 `extern const char g_room_grids[...]` 선언에 가드 추가,
+tileset_id와 DOS 전용 선언 추가:
+
+```c
+/* --- 변경: g_room_grids 선언에 가드 추가 (line 50 근처) --- */
+#ifndef MSXDOS
+extern const char g_room_grids[ROOM_COUNT][ROOM_H][ROOM_W + 1];
+#endif
+
+/* --- 추가: g_room_z 선언 근처 (line 52 근처) --- */
+extern const unsigned char g_room_tileset_id[ROOM_COUNT];
+
+/* --- 추가: #endif 직전 (line 77 근처) --- */
+#ifdef MSXDOS
+extern char g_grid_buffer[ROOM_H * ROOM_W];
+extern unsigned char g_loaded_room_grid;
+extern void grid_load_room(unsigned char room);
+#endif
+```
+
+**근거**:
+- DOS 빌드에서 `g_room_grids`가 존재하지 않으므로 선언 자체를 `#ifndef MSXDOS`로 숨김
+- `g_grid_buffer`와 `grid_load_room()`은 DOS 전용이므로 `#ifdef MSXDOS` 내
+- `g_room_tileset_id`는 ROM/DOS 공통이므로 가드 없이 선언
+- logic.c에서 별도 extern 선언 불필요 (이 헤더에서 모두 제공)
+
+#### B.7.2 room_data.c — tileset_id 배열 (ROM용)
+
+```c
+/* g_room_z 정의 근처에 추가 */
+const unsigned char g_room_tileset_id[ROOM_COUNT] = {0, 0, 0};
+```
+
+기존 g_room_grids 및 메타데이터는 변경 없음.
+
+#### B.7.3 room_data_dos.c — DOS 전용 (신규)
+
+room_data.c를 복사하되 `g_room_grids[3][24][31]` 배열 삭제.
+파일 로딩 기능 추가:
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+/* 현재 룸 그리드를 보유하는 런타임 버퍼 */
+char g_grid_buffer[ROOM_H * ROOM_W];  /* 720 bytes BSS */
+unsigned char g_loaded_room_grid = 0xFF;
+
+void grid_load_room(unsigned char room)
+{
+    char fname[7];  /* "ROOM00\0" */
+    int fd, n;
+
+    if (room == g_loaded_room_grid) return;
+
+    /* 파일명 생성: ROOM00, ROOM01, ... */
+    fname[0] = 'R'; fname[1] = 'O'; fname[2] = 'O'; fname[3] = 'M';
+    fname[4] = '0' + (room / 10);
+    fname[5] = '0' + (room % 10);
+    fname[6] = '\0';
+
+    /* z88dk sccz80의 open()은 3인자 필수: open(fname, O_RDONLY, 0) */
+    fd = open(fname, O_RDONLY, 0);
+    if (fd >= 0) {
+        n = read(fd, g_grid_buffer, ROOM_W * ROOM_H);
+        close(fd);
+        if (n == ROOM_W * ROOM_H) {
+            g_loaded_room_grid = room;
+            return;
+        }
+    }
+
+    /* 에러 폴백: 전체 벽으로 채움 */
+    memset(g_grid_buffer, '#', ROOM_W * ROOM_H);
+    g_loaded_room_grid = room;
 }
 ```
 
-> **폴백 (INITXT 사용 불가 시)**: `ubox_set_mode(0)` + SCNCNT(0xF3F6)=1, REPCNT(0xF3F7)=50 직접 쓰기.
+나머지 메타데이터 (doors, stairs, boxes, monsters, names, items 등)는 room_data.c와 동일.
 
-### A.8 빌드 스크립트 — z88dk 설치 검증
+#### B.7.4 logic.c — 조건부 그리드 접근
 
-```bash
-check_z88dk() {
-    if [[ -z "$ZCC" || ! -x "$ZCC" ]]; then
-        echo "Error: z88dk zcc not found. Install z88dk or set path."
-        echo "  Expected: /opt/z88dk/bin/zcc"
-        exit 1
-    fi
-    echo "z88dk: $("$ZCC" --version 2>&1 | head -1)"
+`logic_get_tile()` 수정. room_data.h에서 `g_grid_buffer`, `grid_load_room()` 선언이
+이미 제공되므로 logic.c 상단에 별도 extern 선언 불필요:
+
+```c
+/* logic_get_tile() 수정 */
+char logic_get_tile(unsigned char room, unsigned char x, unsigned char y)
+{
+    if (room >= ROOM_COUNT || x >= ROOM_W || y >= ROOM_H) return '#';
+#ifdef MSXDOS
+    grid_load_room(room);
+    return g_grid_buffer[y * ROOM_W + x];
+#else
+    return g_room_grids[room][y][x];
+#endif
 }
 ```
 
-### A.9 compile.sh 소스 파일 목록 보강
+`logic_try_move()`와 `logic_door_transition()`은 `logic_get_tile()`을 통해
+간접적으로 그리드에 접근하므로 추가 변경 불필요.
 
-z88dk는 단일 `zcc` 호출로 컴파일+링크를 처리한다. 소스 파일 누락 방지를 위한 체크리스트:
+#### B.7.5 render_dos.c — 3개 변경
 
-```bash
-# 전체 소스 파일 — input.c 포함 확인
-SRCS="src/main.c src/logic.c src/render.c src/input.c src/help.c src/room_data.c"
+**변경 1**: tileset 배열을 `const` → mutable
 
-# 빌드 (CRT0은 z88dk 내장, 별도 지정 불필요)
-"$ZCC" $ZCCFLAGS -o "$BUILD_DIR/$TARGET_BASE" $SRCS
+```c
+/* 변경 전 */
+static const uint8_t tileset_patterns[2048] = { ... };
+static const uint8_t tileset_colors[2048] = { ... };
+
+/* 변경 후 */
+static uint8_t tileset_patterns[2048] = { ... };
+static uint8_t tileset_colors[2048] = { ... };
 ```
 
-### A.10 사전 검증 단계 (Phase 0)
+**변경 2**: `char_to_map_tile()` + `render_draw_map()` 재작성
 
-> **주의**: Phase 0의 모든 단계는 `ubox-msx-lib-z88dk` 포팅이 완료된 상태를 전제한다.
-> 포팅이 미완료이면 Phase 0~5 전체가 차단된다. 반드시 별도 포팅 계획을 먼저 완료할 것.
+현재 `char_to_map_tile()`은 2D 배열 `const char grid[ROOM_H][ROOM_W + 1]`을
+파라미터로 받고, `render_draw_map()`이 `g_room_grids[gs->room]`을 전달.
+flat 버퍼 `g_grid_buffer[ROOM_H * ROOM_W]` (null terminator 없음, 30B/행)과 타입 비호환.
 
-Phase 1 착수 전에 수행할 기술 검증:
+해결: grid 파라미터 제거, `g_grid_buffer[]` 직접 접근.
 
-1. **ubox-msx-lib-z88dk 빌드 확인**
-   ```bash
-   cd Library/MSX/ubox-msx-lib-z88dk && make
-   ls -la lib/ubox.lib  # 파일 존재 확인
-   ```
+```c
+#include <fcntl.h>
+#include <unistd.h>
 
-2. **최소 main() MSX-DOS 테스트** (SCREEN 2 없이)
-   ```c
-   // test_main.c — 최소 실행 확인
-   void main(void) {
-       // 아무것도 안 하고 종료
-   }
-   ```
-   ```bash
-   /opt/z88dk/bin/zcc +msx -subtype=msxdos2 -compiler=sccz80 -create-app \
-       -o test test_main.c
-   # → test.com 생성 확인, openMSX에서 실행
-   ```
+/* 헬퍼: flat 버퍼에서 (gx,gy) 위치의 문자를 반환 */
+static char grid_buf_get(uint8_t gx, uint8_t gy)
+{
+    return g_grid_buffer[(uint16_t)gy * ROOM_W + gx];
+}
 
-3. **SCREEN 2 전환 테스트** (ubox 연동)
-   ```c
-   // test_screen2.c — §6.3 render_init() 핵심 순서 검증
-   // ※ 실제 render_init()는 enable_screen을 호출하지 않음 (render_redraw_all이 처리).
-   //    이 테스트는 단독 실행이므로 enable_screen을 직접 호출한다.
-   #include "ubox.h"
-   void main(void) {
-       ubox_set_mode(2);              // step 1: SCREEN 2
-       ubox_set_colors(15, 1, 1);     // step 1a: backdrop=Black
-       ubox_disable_screen();         // step 3: 셋업 중 깜빡임 방지
-       ubox_fill_screen(0);           // step 5: 화면 클리어
-       ubox_init_isr(2);              // step 8: ISR 시작
-       ubox_enable_screen();          // (테스트용 — 실제 코드에서는 render_redraw_all이 호출)
-       // 3초 대기 (30fps × 3초 = 90 ticks)
-       ubox_wait_for(90);
-       // 복귀 — HTIMI 훅 복원 필수
-       __asm
-       di
-       ld a, #0xC9
-       ld (#0xFD9F), a
-       ei
-       call 0x006C
-       __endasm;
-   }
-   ```
-   ```bash
-   UBOX_DIR="../../Library/MSX/ubox-msx-lib-z88dk"
-   /opt/z88dk/bin/zcc +msx -subtype=msxdos2 -compiler=sccz80 -create-app \
-       -I$UBOX_DIR/include -L$UBOX_DIR/lib -lubox \
-       -o test_s2 test_screen2.c
-   # → test_s2.com을 디스크에 넣어 openMSX에서 SCREEN 2 전환 확인
-   ```
+/* 변경 후 char_to_map_tile — grid 파라미터 제거 */
+static uint8_t char_to_map_tile(uint8_t gx, uint8_t gy)
+{
+    char c = grid_buf_get(gx, gy);
+    switch (c) {
+        case '.': return TILE_FLOOR;
+        case '#': return TILE_WALL;
+        case '@':
+            if ((gx > 0 && grid_buf_get(gx - 1, gy) == '@') ||
+                (gx < ROOM_W - 1 && grid_buf_get(gx + 1, gy) == '@'))
+                return TILE_DOOR_H;
+            return TILE_DOOR_V;
+        case '<': return TILE_STAIR_DN;
+        case '>': return TILE_STAIR_UP;
+        case '%': return TILE_BOX;
+        default:  return TILE_EMPTY;
+    }
+}
 
-4. **room_data.c 링크 테스트** (메모리 용량 확인)
-   ```bash
-   /opt/z88dk/bin/zcc +msx -subtype=msxdos2 -compiler=sccz80 -create-app \
-       -I$UBOX_DIR/include -L$UBOX_DIR/lib -lubox \
-       -o test_full test_screen2.c room_data.c
-   # → .com 파일 크기 확인 (TPA 55KB 이내인지)
-   ```
+/* 변경 후 render_draw_map — g_room_grids 제거, grid_load_room 호출 */
+void render_draw_map(const GameState *gs)
+{
+    uint8_t vx, vy;
+    uint8_t gx, gy;
 
-이 4단계를 통과하면 Phase 1 착수가 안전하다.
+    grid_load_room(gs->room);  /* 캐시 히트 시 즉시 반환 */
+
+    for (vy = 0; vy < MAP_VIEW_H; vy++) {
+        gy = gs->cam_y + vy;
+        for (vx = 0; vx < MAP_VIEW_W; vx++) {
+            gx = gs->cam_x + vx;
+            ubox_put_tile(MAP_ORIGIN_X + vx, MAP_ORIGIN_Y + vy,
+                          char_to_map_tile(gx, gy));
+        }
+    }
+}
+```
+
+> **주의**: `grid_buf_get()`에서 `(uint16_t)gy * ROOM_W` 캐스트는 Z80의 8비트 연산
+> 오버플로 방지용. `gy`(최대 23) × `ROOM_W`(30) = 690 → uint8_t 범위 초과.
+
+**변경 3**: `render_load_tileset()` 함수 추가 — VRAM 재업로드 필수
+
+> **핵심**: `render_redraw_all()` (render_dos.c:266-277)은 `ubox_set_tiles()`를
+> 호출하지 않음. `ubox_set_tiles()`는 `render_init()` (line 67)에서만 호출됨.
+> 따라서 `render_load_tileset()` 내부에서 직접 VRAM 업로드해야 함.
+
+```c
+static unsigned char g_loaded_tileset = 0xFF;
+
+void render_load_tileset(unsigned char tileset_id)
+{
+    unsigned char buf[144];
+    char fname[7];  /* "TILES0\0" */
+    int fd;
+
+    if (tileset_id == g_loaded_tileset) return;
+
+    fname[0] = 'T'; fname[1] = 'I'; fname[2] = 'L';
+    fname[3] = 'E'; fname[4] = 'S';
+    fname[5] = '0' + tileset_id;
+    fname[6] = '\0';
+
+    /* z88dk sccz80의 open()은 3인자 필수: open(fname, O_RDONLY, 0) */
+    fd = open(fname, O_RDONLY, 0);
+    if (fd >= 0) {
+        if (read(fd, buf, 144) == 144) {
+            memcpy(&tileset_patterns[0], &buf[0], 72);   /* patterns tiles 0-8 */
+            memcpy(&tileset_colors[0], &buf[72], 72);     /* colors tiles 0-8 */
+            g_loaded_tileset = tileset_id;
+        }
+        close(fd);
+    }
+
+    /* VRAM 재업로드 — render_redraw_all()은 ubox_set_tiles()를 호출하지 않으므로
+     * 여기서 직접 VRAM에 반영해야 함 */
+    ubox_set_tiles(tileset_patterns);
+    ubox_set_tiles_colors(tileset_colors);
+}
+```
+
+#### B.7.6 render.h — render_load_tileset 선언 추가
+
+```c
+/* render_cleanup() 선언 근처에 추가 */
+#ifdef MSXDOS
+void render_load_tileset(unsigned char tileset_id);
+#endif
+```
+
+ROM 빌드에는 render_load_tileset()이 존재하지 않으므로 `#ifdef MSXDOS` 가드.
+main_dos.c에서 호출 시 선언 필요.
+
+#### B.7.7 main_dos.c — 초기화/룸 전환 호출
+
+**초기화 시퀀스** (main() 함수 상단):
+
+현재 순서: `logic_init → logic_update_camera → monster_init_room → render_init → render_redraw_all`
+
+변경 후:
+```c
+logic_init(&g);
+logic_update_camera(&g);
+monster_init_room(g.room);
+move_counter = 0;
+render_init();                                    /* ubox_set_tiles() → VRAM 초기 업로드 */
+render_load_tileset(g_room_tileset_id[g.room]);   /* ★ 추가: 디스크 로드 → VRAM 재업로드 */
+render_redraw_all(&g);                            /* render_draw_map() → grid_load_room() 자동 */
+```
+
+> `render_init()`이 먼저 VRAM 초기화 (기본 타일셋 업로드).
+> 직후 `render_load_tileset()`이 디스크에서 맵 타일을 로드하여 VRAM 덮어쓰기.
+> `render_redraw_all()` → `render_draw_map()` → `grid_load_room(0)` 최초 호출.
+
+**룸 전환** (do_door, do_stair):
+
+`render_redraw_all(&g)` 직전에 `render_load_tileset()` 추가:
+```c
+/* do_door(): 기존 render_redraw_all(&g) (line 51) 직전에 추가 */
+render_load_tileset(g_room_tileset_id[g.room]);
+render_redraw_all(&g);
+
+/* do_stair(): 기존 render_redraw_all(&g) (line 85) 직전에 추가 */
+render_load_tileset(g_room_tileset_id[g.room]);
+render_redraw_all(&g);
+```
+
+> grid_load_room()은 render_draw_map() 내부에서 자동 호출됨 (캐시 미스 시).
+> render_load_tileset()도 캐시 체크하므로 동일 tileset_id면 디스크 접근 없음.
+
+#### B.7.8 compile_dos.sh — 빌드 변경
+
+```bash
+# 변경 1: MSXDOS 플래그 추가
+ZCCFLAGS="$ZCCFLAGS -DMSXDOS"
+
+# 변경 2: SRCS에서 room_data.c → room_data_dos.c
+SRCS="src/main_dos.c src/logic.c src/render_dos.c src/input.c src/help.c \
+      src/room_data_dos.c src/monster.c"
+
+# 변경 3: 데이터 파일 생성 단계 추가
+gen_data() {
+    python3 tools/gen_room_bin.py --input src/room_data.c --out-dir "$BUILD_DIR"
+    python3 tools/gen_tileset_msx.py --out-dir "$BUILD_DIR"
+}
+
+# 변경 4: disk()에 데이터 파일 추가
+disk() {
+    # ... 기존 COM 추가 ...
+    for f in "$BUILD_DIR"/ROOM??; do
+        [ -f "$f" ] || continue
+        fname="$(basename "$f")"
+        "$RDEDISKTOOL" add "$DSK" "$f" "$fname"
+    done
+    for f in "$BUILD_DIR"/TILES?; do
+        [ -f "$f" ] || continue
+        fname="$(basename "$f")"
+        "$RDEDISKTOOL" add "$DSK" "$f" "$fname"
+    done
+}
+```
+
+### B.8 빌드 도구
+
+#### B.8.1 tools/gen_room_bin.py — 그리드 바이너리 추출
+
+`src/room_data.c`를 파싱하여 `g_room_grids` 문자열 리터럴에서
+각 룸의 ASCII 그리드를 추출, 행 우선 바이너리 파일로 출력.
+
+```
+입력: src/room_data.c
+출력: build_dos/ROOM00 (720 bytes)
+      build_dos/ROOM01 (720 bytes)
+      build_dos/ROOM02 (720 bytes)
+```
+
+#### B.8.2 tools/gen_tileset_msx.py — 타일셋 바이너리 생성
+
+`src/tiles.h`의 TILE_PATTERNS_DATA/TILE_COLORS_DATA에서
+맵 타일 (인덱스 0-8) 의 패턴/색상 데이터를 추출, 바이너리 파일로 출력.
+
+```
+입력: src/tiles.h (또는 데이터 하드코딩)
+출력: build_dos/TILES0 (144 bytes = 72B patterns + 72B colors)
+```
+
+### B.9 MSX-DOS 디스크 파일 구조
+
+#### B.9.1 Phase 1 디스크 레이아웃
+
+```
+MSX-DOS2 디스크 (720KB = 737,280 bytes):
+├── MSXDOS2.SYS        (MSX-DOS2 커널, ~30KB)
+├── COMMAND2.COM       (명령 프로세서, ~8KB)
+├── PROTO02.COM        (게임 실행파일, ~16.5KB)
+├── TILES0             (타일셋 0: 맵 타일 pattern+color, 144 bytes)
+├── ROOM00             (룸 0 그리드, 720 bytes)
+├── ROOM01             (룸 1 그리드, 720 bytes)
+└── ROOM02             (룸 2 그리드, 720 bytes)
+
+디스크 사용: ~57.7KB (전체의 8%)
+가용 잔여: ~662KB
+```
+
+#### B.9.2 50룸 확장 시 예측
+
+```
+MSX-DOS2 디스크 (720KB):
+├── MSXDOS2.SYS        (~30KB)
+├── COMMAND2.COM       (~8KB)
+├── PROTO02.COM        (~25.5KB — 50룸 메타데이터 포함)
+├── TILES0-3           (4종 타일셋, 144B × 4 = 576 bytes)
+├── ROOM00-49          (50룸 그리드, 720B × 50 = 36,000 bytes ≈ 35.2KB)
+└── (기타 데이터 파일)
+
+디스크 사용: ~100KB (전체의 14%)
+가용 잔여: ~620KB
+```
+
+#### B.9.3 파일명 규약
+
+| 패턴 | 범위 | 크기 | MSX-DOS 8.3 호환 |
+|------|------|------|------------------|
+| ROOMnn | ROOM00-ROOM99 | 720B | Yes (6문자, 확장자 없음) |
+| TILESn | TILES0-TILES9 | 144B | Yes (6문자, 확장자 없음) |
+
+> ROOM 파일은 100개 (00-99)까지 현재 명명규칙으로 지원.
+> 100룸 이상 시: `RMnnn` (5문자) 또는 서브디렉토리 사용 (MSX-DOS2 지원) 검토.
+
+### B.10 초기화 시퀀스 (DOS 빌드)
+
+```
+main()
+  ├── logic_init(&g)                           ← g.room=0, g.x/y 설정
+  ├── logic_update_camera(&g)
+  ├── monster_init_room(0)
+  ├── render_init()
+  │     └── ubox_set_tiles(tileset_patterns)   ← 컴파일 시점 기본 타일셋 VRAM 업로드
+  ├── render_load_tileset(g_room_tileset_id[0]) ★
+  │     ├── open("TILES0") → read(144B) → close
+  │     ├── memcpy → tileset_patterns[0..71], tileset_colors[0..71]
+  │     └── ubox_set_tiles() + ubox_set_tiles_colors()  ← VRAM 재업로드
+  ├── render_redraw_all(&g)
+  │     ├── render_draw_map(&g)
+  │     │     ├── grid_load_room(0)  ← 캐시 미스
+  │     │     │     └── open("ROOM00") → read(720B) → close → g_grid_buffer
+  │     │     └── char_to_map_tile(gx, gy)  ← g_grid_buffer 직접 접근
+  │     ├── render_draw_monsters(&g)
+  │     ├── render_update_player(&g)
+  │     └── render_update_status(&g)
+  └── 게임 루프 진입
+```
+
+### B.10.1 룸 전환 시퀀스
+
+```
+do_door() / do_stair()
+  ├── logic_door_transition(&g, di)
+  │     └── logic_get_tile(target_room, ...) → grid_load_room(target_room)
+  │           ← target room 그리드 자동 로드 (logic_get_tile 내부)
+  ├── monster_init_room(g.room)
+  ├── render_load_tileset(g_room_tileset_id[g.room])  ★
+  │     ├── 캐시 히트 → 즉시 반환 (동일 tileset_id)
+  │     └── 캐시 미스 → 디스크 로드 → VRAM 재업로드
+  └── render_redraw_all(&g)
+        └── render_draw_map(&g)
+              └── grid_load_room(g.room)  ← 이미 로드됨 (캐시 히트)
+```
+
+### B.11 제약 사항
+
+| 제약 | 설명 |
+|------|------|
+| ROM 빌드 불가 | ROM 카트리지는 디스크 접근 불가, 인라인 데이터 유지 |
+| MSX-DOS 8.3 파일명 | ROOM00-99, TILES0-9 형식 (MSX-DOS 호환) |
+| 디스크 접근 지연 | 룸 전환 시 ~0.1-0.3초 (720B 읽기, 턴 기반이므로 허용) |
+| z88dk fcntl 미검증 | MSX-DOS2 BDOS 기반이므로 대부분 정상이나, 실패 시 stdio 또는 직접 BDOS 대안 |
+| 코드 유지보수 | room_data.c와 room_data_dos.c 동기화 필요 (메타데이터 부분) |
+| VRAM 업로드 필수 | render_load_tileset() 내부에서 ubox_set_tiles()+ubox_set_tiles_colors() 호출 필수. render_redraw_all()은 VRAM 업로드 안 함 |
+| #ifdef MSXDOS 최소화 | 공유 파일 중 logic.c와 room_data.h만 `#ifdef MSXDOS` 사용. 나머지는 파일 분리로 해결 |
+| z88dk open() 3인자 | z88dk sccz80의 open()은 mode 인자 필수. 2인자 호출 시 컴파일 에러. `open(fname, O_RDONLY, 0)` 형식 사용 |
+
+### B.12 Apple II 대비 차이점
+
+| 항목 | Apple II | MSX |
+|------|----------|-----|
+| 빌드 대상 | 단일 (ProDOS) | 듀얼 (ROM + DOS) |
+| 그리드 형식 | 니블 패킹 + RLE 압축 | ASCII chars (비압축) |
+| 그리드 크기 | 100×100 (5,000B 디컴프레스) | 30×24 (720B) |
+| 타일 포맷 | 8B pattern only (7px HGR) | 8B pattern + 8B color (8px VDP) |
+| 타일 로드 대상 | RAM 버퍼 직접 참조 | VRAM 업로드 (ubox_set_tiles) |
+| 파일 I/O | 직접 ProDOS MLI ASM | z88dk fcntl (BDOS 래핑) |
+| prefix 문제 | ON_LINE으로 절대 경로 구성 | 없음 (CP/M 현재 디렉토리) |
+
+### B.13 ROM 빌드 영향 검증
+
+| 파일 | ROM 빌드 영향 | 이유 |
+|------|--------------|------|
+| render.c | **없음** | DOS 전용 파일 render_dos.c만 변경, render.c 불변 |
+| main.c | **없음** | DOS 전용 파일 main_dos.c만 변경, main.c 불변 |
+| logic.c | **무영향** | `#ifdef MSXDOS` 내부만 변경, ROM 빌드에서 기존 코드 경로 유지 |
+| room_data.h | **최소** | `g_room_tileset_id[]` 선언 추가. `#ifndef MSXDOS` 가드는 ROM 빌드에서 기존 g_room_grids 선언 유지 |
+| room_data.c | **최소** | `g_room_tileset_id[]` 배열 추가 (3바이트) |
+| monster.c | **없음** | logic_get_tile() 경유만, 직접 g_room_grids 접근 없음 |
+| compile.sh | **없음** | DOS 전용 compile_dos.sh만 변경 |
+| render.h | **무영향** | `#ifdef MSXDOS` 가드 내 선언만 추가 |
+
+### B.14 불변 파일 목록
+
+Appendix B 구현 시 **변경하지 않는** 파일:
+
+- `src/render.c` — ROM 전용 렌더러, g_room_grids 인라인 접근 유지
+- `src/main.c` — ROM 전용 메인, render_load_tileset 불필요
+- `src/monster.c` — logic_get_tile() 경유만, 직접 그리드 접근 없음
+- `src/engine.h` — GameState 구조체 변경 없음
+- `src/input.c`, `src/input.h` — 입력 처리, 데이터 접근 없음
+- `src/help.c`, `src/help.h` — 도움말 표시, 데이터 접근 없음
+- `src/tiles.h` — 타일 정의 매크로, ROM/DOS 공통 유지
+- `src/font.h` — 폰트 정의 매크로
+- `src/logic.h` — 함수 선언만, 변경 불필요
+- `src/monster.h` — 구조체/함수 선언만
+- `compile.sh` — ROM 빌드 스크립트, 변경 없음
+
+### B.15 구현 단계 계획
+
+| Step | 내용 | 변경 파일 | 상태 |
+|------|------|----------|------|
+| 1 | room_data.h 가드 + 선언 추가 | `src/room_data.h` | 완료 |
+| 2 | room_data.c tileset_id 배열 (ROM) | `src/room_data.c` | 완료 |
+| 3 | room_data_dos.c 신규 (DOS) | `src/room_data_dos.c` | 완료 |
+| 4 | logic.c 조건부 그리드 접근 | `src/logic.c` | 완료 |
+| 5 | render_dos.c char_to_map_tile/render_draw_map 재작성 + render_load_tileset 추가 | `src/render_dos.c` | 완료 |
+| 6 | render.h render_load_tileset 선언 | `src/render.h` | 완료 |
+| 7 | main_dos.c 초기화/전환 호출 | `src/main_dos.c` | 완료 |
+| 8 | gen_room_bin.py 신규 | `tools/gen_room_bin.py` | 완료 |
+| 9 | gen_tileset_msx.py 신규 | `tools/gen_tileset_msx.py` | 완료 |
+| 10 | compile_dos.sh 수정 | `compile_dos.sh` | 완료 |
+| 11 | ROM 빌드 테스트 (compile.sh all) | — | 완료 |
+| 12 | DOS 빌드 테스트 (compile_dos.sh all) | — | 완료 |
+
+### B.16 결론
+
+**실용적 방향은 "DOS 빌드에서 그리드+타일 외부화, ROM 빌드는 현상 유지"**.
+
+#### Phase 1 (본 Appendix B 구현 범위) 효과 요약
+
+| 항목 | 변경 전 | 변경 후 |
+|------|---------|---------|
+| COM 크기 | 18,346 bytes | 17,334 bytes (**-1,012**) |
+| COM 내 데이터 비율 | ~40% | ~31% |
+| 최대 룸 수 (DOS) | ~33룸 | **~155룸** |
+| 디스크 접근 | 없음 | 룸 전환 시 720B 읽기 (~0.1초) |
+| 룸별 타일셋 교체 | 불가 | **가능** (TILES0-9) |
+
+> 실측 결과 반영 (2026-03-01)
+
+#### 외부화 단계 로드맵 요약
+
+| Phase | 트리거 | 외부화 대상 | COM 절감 | 최대 룸 수 |
+|-------|--------|-----------|---------|-----------|
+| **Phase 1** (본 계획) | 즉시 | 그리드 + 맵 타일 | -1,012B | ~155룸 |
+| Phase 2 (B.17) | 복수 타일셋 or 150룸+ | tileset 전체 배열 | -4,096B 추가 | ~190룸 |
+| Phase 3 (B.18) | 150룸+ | 룸 메타데이터 | -191B/룸 | 사실상 무제한 |
+
+#### ROM 빌드 한계
+
+| ROM 크기 | 최대 룸 수 | 비고 |
+|----------|-----------|------|
+| 32KB (표준) | ~21룸 | 현재 빌드 방식 |
+| MegaROM | 수백 룸 | z88dk MegaROM 매퍼 필요 (B.19 참조) |
+
+> Phase 1만으로도 3룸 → 155룸은 실질적으로 완성형 게임 수준의 컨텐츠량이며,
+> Phase 2/3는 그 시점에 필요 여부를 재평가한다.
+
+---
+
+### B.17 Phase 2 외부화 로드맵 — 타일셋 전체 분리
+
+> 이 섹션은 Phase 1 완료 후, 필요 시 구현할 추가 외부화 단계를 문서화한다.
+> Phase 1의 설계와 독립적이며, Phase 1 완료 시점에 재평가한다.
+
+#### B.17.1 동기
+
+Phase 1 후에도 `tileset_patterns[2048]` + `tileset_colors[2048]` = **4,096 bytes**가
+COM 바이너리에 남아 있다. Phase 1 후 COM의 ~25%를 차지하는 최대 단일 데이터 블록이다.
+
+현재 tileset 배열 내부 구조:
+```
+[0-8]     맵 타일     : 144B (pattern 72 + color 72) — Phase 1에서 TILES0로 런타임 덮어쓰기
+[9-15]    빈 갭       : 112B × 2 = 224B (제로)
+[16-23]   보더 타일   : 128B (pattern 64 + color 64) — 정적, 바이너리 유지
+[24-31]   빈 갭       : 128B × 2 = 256B (제로)
+[32-127]  폰트 타일   : 1,536B (pattern 768 + color 768) — 정적, 바이너리 유지
+[128-255] 빈          : 2,048B (제로)
+```
+
+실제 의미 있는 데이터: 144B(맵) + 128B(보더) + 1,536B(폰트) = **1,808 bytes**.
+나머지 2,288 bytes는 제로 패딩.
+
+#### B.17.2 전체 외부화 전략
+
+배열을 초기값 없이 선언 (BSS), 부팅 시 디스크에서 전체 로드:
+
+```c
+/* Phase 2 변경 */
+static uint8_t tileset_patterns[2048];  /* BSS — 제로 초기화 */
+static uint8_t tileset_colors[2048];    /* BSS — 제로 초기화 */
+```
+
+디스크 파일:
+```
+TILESET (4,096 bytes)
+  [0..2047]    = tileset_patterns 전체 (맵+보더+폰트 포함)
+  [2048..4095] = tileset_colors 전체
+```
+
+`render_init()` 직후 전체 로드:
+```c
+void render_load_full_tileset(void) {
+    int fd = open("TILESET", O_RDONLY);
+    if (fd >= 0) {
+        read(fd, tileset_patterns, 2048);
+        read(fd, tileset_colors, 2048);
+        close(fd);
+    }
+    ubox_set_tiles(tileset_patterns);
+    ubox_set_tiles_colors(tileset_colors);
+}
+```
+
+이후 룸 전환 시 기존 `render_load_tileset()`으로 맵 타일 영역만 부분 덮어쓰기.
+
+#### B.17.3 메모리 효과
+
+| 항목 | Phase 1 후 | Phase 2 후 | 차이 |
+|------|-----------|-----------|------|
+| COM DATA | tileset 4,096B | 0B | **-4,096** |
+| COM BSS | grid 720B | grid 720 + tileset 4,096 = 4,816B | +4,096 (BSS) |
+| COM 파일 크기 | ~16,539 | **~12,443** | **-4,096** |
+| 런타임 메모리 | 동일 | 동일 | 0 (DATA→BSS 이동일 뿐) |
+
+> COM 파일이 ~12KB로 줄어들지만, 런타임 TPA 사용량은 동일.
+> BSS는 COM 로드 후 시스템이 제로 초기화. 부팅 시 4KB 디스크 읽기 추가 (~0.2초).
+
+#### B.17.4 트리거 조건
+
+Phase 2는 다음 중 하나 충족 시 구현:
+1. 복수 풀 타일셋 (보더+폰트가 다른 셋)이 필요할 때
+2. COM 크기 절감이 필요할 때 (예: 150룸+ 에서 TPA 압박)
+3. 타일셋 파일을 게임 외부 도구로 편집/교체하는 워크플로우 필요 시
+
+#### B.17.5 Phase 1 호환성
+
+Phase 2는 Phase 1의 `render_load_tileset()` 인프라를 그대로 활용:
+- Phase 1의 TILES0 (144B 맵 타일 덮어쓰기) → Phase 2에서도 동일하게 유지
+- TILESET 파일은 초기 전체 로드용, TILES0은 룸별 맵 타일 교체용
+- `g_room_tileset_id[]` 매핑은 동일
+
+---
+
+### B.18 Phase 3 외부화 로드맵 — 룸 메타데이터 분리
+
+> 이 섹션은 150룸 이상 시나리오를 위한 최종 외부화 단계를 문서화한다.
+
+#### B.18.1 동기
+
+Phase 1 후 COM 내 룸 메타데이터 증가율은 **192 bytes/룸**.
+150룸에서 COM이 ~44.5KB → TPA 위험구간 진입.
+메타데이터를 디스크로 분리하면 룸 수 제약이 사실상 소멸.
+
+#### B.18.2 외부화 대상
+
+| 배열 | 룸당 크기 | 총 (150룸) |
+|------|----------|-----------|
+| g_doors[ROOM_COUNT][4] (DoorMsx=6B) | 24B | 3,600B |
+| g_stairs[ROOM_COUNT][2] (StairMsx=5B) | 10B | 1,500B |
+| g_boxes[ROOM_COUNT][10] (BoxMsx=11B) | 110B | 16,500B |
+| g_monsters[ROOM_COUNT][4] (MonsterDef=4B) | 16B | 2,400B |
+| count 배열 4개 | 4B | 600B |
+| g_room_names | 24B | 3,600B |
+| g_room_z + start_x + start_y | 3B | 450B |
+| **합계** | **191B** | **28,650B** |
+
+#### B.18.3 파일 포맷 (안)
+
+```
+RMETAnn (1파일/룸, ~191 bytes)
+  [0]       door_count (1B)
+  [1..24]   doors[4] × DoorMsx(6B) = 24B
+  [25]      stair_count (1B)
+  [26..35]  stairs[2] × StairMsx(5B) = 10B
+  [36]      box_count (1B)
+  [37..146] boxes[10] × BoxMsx(11B) = 110B
+  [147]     monster_count (1B)
+  [148..163] monsters[4] × MonsterDef(4B) = 16B
+  [164..187] room_name[24]
+  [188]     room_z (1B)
+  [189]     start_x (1B)
+  [190]     start_y (1B)
+  합계: 191 bytes
+```
+
+런타임 버퍼: `g_meta_buffer[191]` (BSS, 현재 룸 메타만 보유).
+접근 패턴: `g_grid_buffer`와 동일한 캐시 패턴 (룸 전환 시 로드).
+
+#### B.18.4 구현 영향도
+
+| 파일 | 변경 규모 | 내용 |
+|------|----------|------|
+| room_data_dos.c | 대규모 | 모든 const 배열 제거, meta_load_room() 추가 |
+| logic.c | 중간 | g_doors/g_stairs 참조를 버퍼 경유로 변경 |
+| monster.c | 중간 | g_monsters/g_monster_count 참조 변경 |
+| render_dos.c | 소규모 | g_room_names 참조 변경 |
+| main_dos.c | 소규모 | meta_load_room() 호출 추가 |
+
+> **주의**: Phase 3는 공유 파일(logic.c, monster.c)의 `#ifdef MSXDOS` 사용이
+> 크게 증가한다. ROM 빌드와의 코드 분기가 복잡해지므로
+> logic_dos.c, monster_dos.c 파일 분리를 고려해야 한다.
+
+#### B.18.5 트리거 조건
+
+- 150룸 이상으로 확장 시 (COM이 ~44KB 초과 예상 시)
+- Phase 1 + Phase 2를 먼저 완료한 후 검토
+
+---
+
+### B.19 ROM 빌드 크기 제약 분석
+
+> ROM 빌드는 디스크 접근이 불가하므로 데이터 외부화와 독립적인 분석이 필요하다.
+
+#### B.19.1 현재 상태
+
+| 항목 | 값 |
+|------|------|
+| ROM 파일 크기 | 32,768 bytes (32KB, 패딩 포함) |
+| 실제 사용량 (raw) | 15,325 bytes |
+| 잔여 공간 | 17,443 bytes |
+| 룸당 증가량 | ~935 bytes (그리드 744 + 메타 191) |
+
+#### B.19.2 32KB ROM 한계 분석
+
+ROM에서는 모든 데이터가 인라인이므로:
+
+| 룸 수 | raw 크기 | ROM 여유 | 상태 |
+|--------|----------|----------|------|
+| 3 (현재) | 15,325 | 17,443 | OK |
+| 10 | 21,870 | 10,898 | OK |
+| 15 | 26,545 | 6,223 | OK |
+| 20 | 31,220 | 1,548 | 위험 |
+| **21** | **32,155** | **613** | **임계** |
+| 22 | 33,090 | -322 | 초과 |
+
+> **32KB ROM 최대: ~21룸**
+
+#### B.19.3 32KB 초과 시 선택지
+
+| 방안 | 최대 ROM 크기 | 구현 복잡도 | 호환성 |
+|------|-------------|-----------|--------|
+| MegaROM (ASC16) | 256KB (16×16KB 뱅크) | 높음 | 대부분 MSX2 |
+| MegaROM (ASC8) | 2MB (256×8KB 뱅크) | 높음 | 대부분 MSX2 |
+| 그리드 RLE 압축 | 32KB 유지 | 중간 | 완전 호환 |
+| 그리드 크기 축소 | 32KB 유지 | 낮음 | 완전 호환 |
+
+> ROM 빌드에서 20룸 이상이 필요할 경우, z88dk의 MegaROM 지원 또는
+> 그리드 RLE 압축을 검토. 본 Appendix B 범위 밖이며 별도 분석 필요.
+
+#### B.19.4 Phase 1이 ROM 빌드에 미치는 영향
+
+Phase 1 구현은 ROM 빌드에 실질적 영향 없음:
+- `compile.sh` 변경 없음
+- ROM은 `-DMSXDOS` 플래그 없이 빌드 → 모든 `#ifdef MSXDOS` 블록 비활성
+- `room_data.c`에 `g_room_tileset_id[3]` 추가 = +3 bytes (무시 가능)
+- 상기 ROM 크기 예측표에 이 +3 bytes는 이미 포함

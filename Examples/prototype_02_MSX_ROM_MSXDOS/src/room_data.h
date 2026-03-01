@@ -47,8 +47,11 @@ typedef struct {
     unsigned char range;
 } MonsterDef;
 
+#ifndef MSXDOS
 extern const char g_room_grids[ROOM_COUNT][ROOM_H][ROOM_W + 1];
+#endif
 extern const char g_room_names[ROOM_COUNT][24];
+extern const unsigned char g_room_tileset_id[ROOM_COUNT];
 extern const unsigned char g_room_z[ROOM_COUNT];
 extern const unsigned char g_player_start_x[ROOM_COUNT];
 extern const unsigned char g_player_start_y[ROOM_COUNT];
@@ -73,5 +76,11 @@ extern const unsigned char g_monster_count[ROOM_COUNT];
 extern const MonsterDef g_monsters[ROOM_COUNT][MAX_MONSTERS];
 extern const char * const g_monster_names[];
 extern const unsigned char g_monster_name_count;
+
+#ifdef MSXDOS
+extern char g_grid_buffer[ROOM_H * ROOM_W];
+extern unsigned char g_loaded_room_grid;
+extern void grid_load_room(unsigned char room);
+#endif
 
 #endif

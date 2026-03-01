@@ -6,19 +6,21 @@
 #include <ubox.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /*
  * Combined tileset: 256 tiles * 8 bytes = 2048 bytes each.
  * Tiles 0-31 from tiles.h, 32-127 from font.h, 128-255 zero.
  */
-static const uint8_t tileset_patterns[2048] = {
+static uint8_t tileset_patterns[2048] = {
     TILE_PATTERNS_DATA,
     FONT_PATTERNS_DATA,
     /* [128-255] 128 empty tiles = 1024 bytes of zeros */
     0
 };
 
-static const uint8_t tileset_colors[2048] = {
+static uint8_t tileset_colors[2048] = {
     TILE_COLORS_DATA,
     FONT_COLORS_DATA,
     /* [128-255] 128 empty tiles = 1024 bytes of zeros */
@@ -38,17 +40,23 @@ static const uint8_t player_sprite[8] = {
 
 static char status_buf[40];
 static uint8_t status_dirty;
+static unsigned char g_loaded_tileset = 0xFF;
 
-static uint8_t char_to_map_tile(uint8_t gx, uint8_t gy,
-                                const char grid[ROOM_H][ROOM_W + 1])
+/* Helper: get char from flat grid buffer with 16-bit offset */
+static char grid_buf_get(uint8_t gx, uint8_t gy)
 {
-    char c = grid[gy][gx];
+    return g_grid_buffer[(unsigned int)gy * ROOM_W + gx];
+}
+
+static uint8_t char_to_map_tile(uint8_t gx, uint8_t gy)
+{
+    char c = grid_buf_get(gx, gy);
     switch (c) {
         case '.': return TILE_FLOOR;
         case '#': return TILE_WALL;
         case '@':
-            if ((gx > 0 && grid[gy][gx - 1] == '@') ||
-                (gx < ROOM_W - 1 && grid[gy][gx + 1] == '@'))
+            if ((gx > 0 && grid_buf_get(gx - 1, gy) == '@') ||
+                (gx < ROOM_W - 1 && grid_buf_get(gx + 1, gy) == '@'))
                 return TILE_DOOR_H;
             return TILE_DOOR_V;
         case '<': return TILE_STAIR_DN;
@@ -116,14 +124,15 @@ void render_draw_map(const GameState *gs)
 {
     uint8_t vx, vy;
     uint8_t gx, gy;
-    const char (*grid)[ROOM_W + 1] = g_room_grids[gs->room];
+
+    grid_load_room(gs->room);  /* cache hit returns immediately */
 
     for (vy = 0; vy < MAP_VIEW_H; vy++) {
         gy = gs->cam_y + vy;
         for (vx = 0; vx < MAP_VIEW_W; vx++) {
             gx = gs->cam_x + vx;
             ubox_put_tile(MAP_ORIGIN_X + vx, MAP_ORIGIN_Y + vy,
-                          char_to_map_tile(gx, gy, grid));
+                          char_to_map_tile(gx, gy));
         }
     }
 }
@@ -274,6 +283,34 @@ void render_redraw_all(const GameState *gs)
     render_update_status(gs);
     render_print(0, 23, "WASD:move H:help Q:quit");
     ubox_enable_screen();
+}
+
+void render_load_tileset(unsigned char tileset_id)
+{
+    unsigned char buf[144];
+    char fname[7];  /* "TILES0\0" */
+    int fd;
+
+    if (tileset_id == g_loaded_tileset) return;
+
+    fname[0] = 'T'; fname[1] = 'I'; fname[2] = 'L';
+    fname[3] = 'E'; fname[4] = 'S';
+    fname[5] = '0' + tileset_id;
+    fname[6] = '\0';
+
+    fd = open(fname, O_RDONLY, 0);
+    if (fd >= 0) {
+        if (read(fd, buf, 144) == 144) {
+            memcpy(&tileset_patterns[0], &buf[0], 72);   /* patterns tiles 0-8 */
+            memcpy(&tileset_colors[0], &buf[72], 72);     /* colors tiles 0-8 */
+            g_loaded_tileset = tileset_id;
+        }
+        close(fd);
+    }
+
+    /* VRAM re-upload — render_redraw_all() does NOT call ubox_set_tiles() */
+    ubox_set_tiles(tileset_patterns);
+    ubox_set_tiles_colors(tileset_colors);
 }
 
 void render_cleanup(void)

@@ -22,9 +22,10 @@ UBOX_LIB="$UBOX_DIR/lib"
 ZCCFLAGS="+msx -subtype=msxdos2 -compiler=sccz80 -SO2 -create-app"
 ZCCFLAGS="$ZCCFLAGS -I$UBOX_INC -I$SCRIPT_DIR/src"
 ZCCFLAGS="$ZCCFLAGS -L$UBOX_LIB -lubox"
+ZCCFLAGS="$ZCCFLAGS -DMSXDOS"
 
-# Uses main_dos.c and render_dos.c instead of main.c and render.c
-SRCS="src/main_dos.c src/logic.c src/render_dos.c src/input.c src/help.c src/room_data.c src/monster.c"
+# Uses main_dos.c, render_dos.c, room_data_dos.c instead of main.c, render.c, room_data.c
+SRCS="src/main_dos.c src/logic.c src/render_dos.c src/input.c src/help.c src/room_data_dos.c src/monster.c"
 
 check_z88dk() {
     if [[ -z "$ZCC" || ! -x "$ZCC" ]]; then
@@ -40,8 +41,15 @@ check_ubox() {
     fi
 }
 
+gen_data() {
+    mkdir -p "$BUILD_DIR"
+    python3 "$SCRIPT_DIR/tools/gen_room_bin.py" --input "$SCRIPT_DIR/src/room_data.c" --out-dir "$BUILD_DIR"
+    python3 "$SCRIPT_DIR/tools/gen_tileset_msx.py" --tiles-h "$SCRIPT_DIR/src/tiles.h" --out-dir "$BUILD_DIR"
+}
+
 build() {
     mkdir -p "$BUILD_DIR"
+    gen_data
     (cd "$SCRIPT_DIR" && "$ZCC" $ZCCFLAGS -o "$BUILD_DIR/$TARGET_BASE" $SRCS)
     local COM
     if [[ -f "$BUILD_DIR/$TARGET_BASE.COM" ]]; then
@@ -80,6 +88,20 @@ disk() {
     local DSK="$BUILD_DIR/$TARGET_BASE.dsk"
     "$RDEDISKTOOL" create "$DSK" -f msxdsk --fs msxdos --force
     "$RDEDISKTOOL" add "$DSK" "$COM" "${TARGET_BASE}.COM"
+    # Add room grid files
+    for f in "$BUILD_DIR"/ROOM??; do
+        [ -f "$f" ] || continue
+        fname="$(basename "$f")"
+        "$RDEDISKTOOL" add "$DSK" "$f" "$fname"
+        echo "  Added: $fname"
+    done
+    # Add tileset files
+    for f in "$BUILD_DIR"/TILES?; do
+        [ -f "$f" ] || continue
+        fname="$(basename "$f")"
+        "$RDEDISKTOOL" add "$DSK" "$f" "$fname"
+        echo "  Added: $fname"
+    done
     echo "Disk image: $DSK"
 }
 

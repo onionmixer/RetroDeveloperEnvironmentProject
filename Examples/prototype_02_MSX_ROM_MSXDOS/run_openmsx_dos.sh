@@ -50,6 +50,15 @@ cp -f "$BOOT_DISK" "$WORK_DISK"
 "$RDEDISKTOOL" delete "$WORK_DISK" "${TARGET_BASE}.COM" 2>/dev/null || true
 "$RDEDISKTOOL" add "$WORK_DISK" "$COM_PATH" "${TARGET_BASE}.COM"
 
+# Add data files (ROOM grids and tileset binaries)
+for f in "$BUILD_DIR"/ROOM?? "$BUILD_DIR"/TILES?; do
+    [ -f "$f" ] || continue
+    fname="$(basename "$f")"
+    "$RDEDISKTOOL" delete "$WORK_DISK" "$fname" 2>/dev/null || true
+    "$RDEDISKTOOL" add "$WORK_DISK" "$f" "$fname"
+    echo "  Added data: $fname"
+done
+
 export OPENMSX_SYSTEM_DATA="$OPENMSX_SHARE"
 export OPENMSX_DISABLE_SDL_JOYSTICK="${OPENMSX_DISABLE_SDL_JOYSTICK:-1}"
 
