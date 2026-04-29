@@ -3,8 +3,8 @@
 #
 # Boots snow (Mac SE FDHD) from the per-example combined image
 # `system_608_with_hello.img` (System 6.0.8 trimmed boot disk + Hello app
-# injected via hfsutils). After boot, double-click `Hello` on the
-# desktop, then click the button to quit.
+# injected via rdedisktool add --macbinary). After boot, double-click
+# `Hello` on the desktop, then click the button to quit.
 #
 # Optional environment overrides:
 #   SNOW=...         snow binary path
@@ -17,7 +17,7 @@
 #
 # Regenerating the local disk: see ./compile.sh disk (rebuilds from project
 # root's diskwork/bootdisk/macintosh/system_608.img + build/Hello.bin via
-# hfuls hcopy --macbinary).
+# rdedisktool add --macbinary).
 
 set -euo pipefail
 
@@ -29,7 +29,7 @@ LOCAL_DISK="$SCRIPT_DIR/system_608_with_hello.img"
 if [[ ! -f "$LOCAL_DISK" && -z "${BOOT_DISK:-}" ]]; then
     echo "error: $LOCAL_DISK not found" >&2
     echo "       regenerate it: $SCRIPT_DIR/compile.sh disk" >&2
-    echo "       (requires Hello.bin built + diskwork/bootdisk/macintosh/system_608.img + hfsutils)" >&2
+    echo "       (requires Hello.bin built + diskwork/bootdisk/macintosh/system_608.img + rdedisktool)" >&2
     exit 1
 fi
 

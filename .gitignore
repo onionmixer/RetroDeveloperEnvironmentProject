@@ -16,7 +16,7 @@ memo.txt
 # ignore only PNG files in repository root
 /*.png
 
-# Macintosh ROMs and disk images (user-supplied, copyrighted; never commit)
+# Macintosh ROMs and copyrighted System disks (user-supplied; never commit)
 resource/Macintosh/rom/*
 !resource/Macintosh/rom/README.md
 diskwork/bootdisk/macintosh/*
