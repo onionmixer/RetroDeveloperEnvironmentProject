@@ -146,3 +146,16 @@ ROM 실행 스크립트:
 - `Examples/Tutorial_msx_hitech_01/compile.sh`
 - `Examples/Tutorial_msx_hitech_rom_01/README.md`
 - `Examples/Tutorial_msx_hitech_rom_02/README.md`
+
+## 7. 외부 참고 프로젝트 (resource/MSX/)
+
+MSX 개발 시 코드/패턴을 참고할 수 있는 외부 오픈소스 프로젝트들이 `resource/MSX/` 아래에 독립 클론으로 보관되어 있습니다(submodule 아님, 워크스페이스 측에선 untracked로 둡니다 — 개인 reference 용).
+
+| 디렉터리 | 출처 | 사용 시점 |
+|---------|------|----------|
+| `resource/MSX/kingsvalley` | [pdpdds/kingsvalley](https://github.com/pdpdds/kingsvalley) | 왕가의 계곡 1 C 재구현. **게임 로직 / 스테이지 데이터 구조** 참고. SDCC 빌드 사례. |
+| `resource/MSX/ubox_example` | [pdpdds/ubox_example](https://github.com/pdpdds/ubox_example) | Juan J. Martinez의 `ubox` 라이브러리 사용 예. 본 워크스페이스의 `Library/MSX/ubox-msx-lib-z88dk` (z88dk 포팅판)와 짝. **VRAM/스프라이트/사운드 호출 패턴** 참고. |
+| `resource/MSX/noborunoca` | [h1romas4/noborunoca](https://github.com/h1romas4/noborunoca) | z88dk-msx-template 기반의 완성된 게임. **GitHub Actions 빌드 파이프라인 + 32 KiB ROM 패키징** 사례. |
+| `resource/MSX/z88dk-msx-template` | [h1romas4/z88dk-msx-template](https://github.com/h1romas4/z88dk-msx-template) | z88dk(`zcc +msx`) 기반 빌드 템플릿. **CMake 통합 + GDB(z88dk-gdb) 디버깅 흐름** 참고. |
+
+이들 클론은 직접 빌드/링크하지 않습니다. 패턴 학습용 reading material로만 사용하세요. 우리 빌드 흐름은 `Toolchain/MSX/HITECH_TOOLCHAIN/`(Hi-Tech C) + system z88dk(`/opt/z88dk/bin/zcc`) + `Library/MSX/ubox-msx-lib-z88dk/` 조합을 사용합니다.

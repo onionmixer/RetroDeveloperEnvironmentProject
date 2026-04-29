@@ -40,10 +40,9 @@ ADD_TARGET_NAME="${ADD_TARGET_NAME:-HELLONEW}"
 
 if [[ -z "$RDEDISKTOOL" ]]; then
     RDEDISKTOOL="$(first_existing_exec \
-        "$SCRIPT_DIR/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool" \
         "$SCRIPT_DIR/RetroDeveloperEnvironmentDisktool/build/rdedisktool" \
         "$(command -v rdedisktool 2>/dev/null || true)" \
-    )" || RDEDISKTOOL="$SCRIPT_DIR/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool"
+    )" || RDEDISKTOOL="$SCRIPT_DIR/RetroDeveloperEnvironmentDisktool/build/rdedisktool"
 fi
 
 if [[ -n "$APPLEWIN" && -f "$APPLEWIN" ]]; then

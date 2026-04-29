@@ -10,5 +10,31 @@ Toolchain/x68000/toolchain/elf2x68k.tar.bz2
 # Claude Code
 CLAUDE.md
 
+# Personal scratch notes
+memo.txt
+
 # ignore only PNG files in repository root
 /*.png
+
+# Macintosh ROMs and disk images (user-supplied, copyrighted; never commit)
+resource/Macintosh/rom/*
+!resource/Macintosh/rom/README.md
+diskwork/bootdisk/macintosh/*
+!diskwork/bootdisk/macintosh/README.md
+hdd[0-6].img
+
+# Retro68 out-of-source toolchain build (~5 GB intermediate, ~500 MB final)
+Library/Retro68-build/
+
+# Examples gating:
+#  - Tutorial_*  : always tracked
+#  - prototype_01_*, prototype_02_*  : tracked
+#  - prototype_03_* and any later prototype_NN_*  : local-only (not committed)
+Examples/prototype_*
+!Examples/prototype_01_*
+!Examples/prototype_02_*
+
+# Inside the tracked Mac prototype, the cmake build dir and the derived
+# combined boot disk are local-only (regenerated via compile.sh disk).
+Examples/prototype_01_mac_finder/build/
+Examples/prototype_01_mac_finder/system_608_with_hello.img

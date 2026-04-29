@@ -71,10 +71,9 @@ build() {
 resolve_paths() {
   if [[ -z "$RDEDISKTOOL" ]]; then
     RDEDISKTOOL="$(first_existing_exec \
-      "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool" \
       "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool" \
       "$(command -v rdedisktool 2>/dev/null || true)" \
-    )" || RDEDISKTOOL="$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool"
+    )" || RDEDISKTOOL="$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool"
   fi
 
   if [[ -z "$BOOT_DISK" ]]; then

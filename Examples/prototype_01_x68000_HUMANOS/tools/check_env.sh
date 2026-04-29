@@ -35,8 +35,8 @@ need_exec "$PX_SCRIPT" "run_px68k_humanos.sh"
 
 if command -v rdedisktool >/dev/null 2>&1; then
     echo "[OK ] rdedisktool: $(command -v rdedisktool)"
-elif [[ -x "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool" ]]; then
-    echo "[OK ] rdedisktool: $PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build_local/rdedisktool"
+elif [[ -x "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool" ]]; then
+    echo "[OK ] rdedisktool: $PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool"
 elif [[ -x "$PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool" ]]; then
     echo "[OK ] rdedisktool: $PROJECT_ROOT/RetroDeveloperEnvironmentDisktool/build/rdedisktool"
 else

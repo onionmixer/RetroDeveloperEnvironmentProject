@@ -46,3 +46,12 @@
 [submodule "resource_extra/zxcc/zxcc-debian"]
 	path = resource_extra/zxcc/zxcc-debian
 	url = https://github.com/onionmixer/zxcc-debian.git
+[submodule "Emulator/macintosh/snow"]
+	path = Emulator/macintosh/snow
+	url = https://github.com/twvd/snow.git
+[submodule "Library/Retro68"]
+	path = Library/Retro68
+	url = https://github.com/autc04/Retro68.git
+[submodule "resource/Macintosh/QuickDraw"]
+	path = resource/Macintosh/QuickDraw
+	url = https://github.com/jrk/QuickDraw.git
