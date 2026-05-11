@@ -1,0 +1,6 @@
+; Test: assemble AKM at fixed origin to see if rasm honors ORG
+ORG #8000
+include "alienall_playerconfig.asm"
+include "../../../src/mplayer/akm/akm_ubox.asm"
+songDisarkGenerateExternalLabel:
+include "alienall.asm"

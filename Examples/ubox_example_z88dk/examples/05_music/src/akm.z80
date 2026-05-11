@@ -1,0 +1,20 @@
+; z88dk port: assemble at $C200 so internal absolute jumps land in
+;             page 3 RAM ($C000-$FFFF) — page 3 is RAM in both
+;             16K-cart ROM mode and MSX-DOS2 .COM mode. Earlier
+;             we tried $A000 (page 2), but z88dk's MSX cart CRT
+;             enables the cart slot on page 2, leaving $A000 as
+;             unmapped/0xFF in ROM mode (LDIR writes vanish).
+;             The application LDIR-copies this blob to $C200 at
+;             startup via mplayer_engine_load(). $C200 sits just
+;             above z88dk's BSS (typically $C000-$C0xx for ubox
+;             examples) and well below the stack at end-of-RAM.
+;             See Library/MSX/mplayer-z88dk/src/akm/akm_bridge.asm.
+ORG #C200
+
+include "alienall_playerconfig.asm"
+
+include "../../../src/mplayer/akm/akm_ubox.asm"
+
+songDisarkGenerateExternalLabel:
+include "alienall.asm"
+

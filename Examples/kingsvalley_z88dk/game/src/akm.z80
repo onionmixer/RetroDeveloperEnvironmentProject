@@ -1,0 +1,23 @@
+;
+; to build the custom AKM player with song + effects
+;
+; z88dk port (Phase B):
+;   ORG = $D500 — AKM body LDIR'd to page-3 RAM at runtime by
+;   mplayer_engine_load(). $D500 sits above kingsvalley BSS
+;   end ($D426) and below stack base ($F380), giving ~7.6 KiB
+;   safe window. AKM body is ~3.5 KiB so it fits with margin.
+;   PLY_AKM_ROM_Buffer = $F000 (set in akm_ubox.asm), 200 B
+;   reserved away from BSS / AKM body.
+ORG #D500
+
+include "song_playerconfig.asm"
+include "effects_playerconfig.asm"
+
+include "../../src/mplayer/akm/akm_ubox.asm"
+
+songDisarkGenerateExternalLabel:
+include "song.asm"
+
+effectsDisarkGenerateExternalLabel:
+include "effects.asm"
+

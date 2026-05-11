@@ -1,0 +1,34 @@
+name: MS-DOS
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install DJGPP
+      run: |
+        # Download DJGPP
+        Invoke-WebRequest -Uri https://github.com/pdpdds/kingsvalley/releases/download/1.0/djgpp.zip -OutFile djgpp.zip        
+        # Extract DJGPP
+        powershell -Command "Expand-Archive -Path djgpp.zip -DestinationPath .\game\djgpp"    
+    - name: Build with DJGPP
+      run: |
+        # Go to DJGPP folder            
+        $Env:Path="${{ github.workspace }}/game/djgpp/djgpp/i586-pc-msdosdjgpp/bin;${{ github.workspace }}/game/djgpp/djgpp/bin;${{ github.workspace }}/game/djgpp/djgpp/nasm;${{ github.workspace }}/game/djgpp/tools;$Env:Path"
+        [Environment]::SetEnvironmentVariable("GCC_EXEC_PREFIX","${{ github.workspace }}/game/djgpp/djgpp/lib/gcc","User")
+        [Environment]::SetEnvironmentVariable("DJGPP_GCC","gcc","User")
+        [Environment]::SetEnvironmentVariable("DJDIR","${{ github.workspace }}/game/djgpp/djgpp/i586-pc-msdosdjgpp","User")
+        
+        cd game
+        cd djgpp
+        # Run djgpp.bat using cmd.exe
+        # cmd.exe /C djgpp.bat
+        # Run make command
+        make
+    - name: Upload a Build Artifact(kings-msdos)                      
+      uses: actions/upload-artifact@v2.1.4
+      with:
+          name: kings-msdos
+          path: .\game\data

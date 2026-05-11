@@ -1,0 +1,85 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+bin
+game/build
+src/backend/Debug
+src/backend/Release
+game/linux/kings
+/game/djgpp
+/src/backend/sdl1
+Debug
+Release
+x64
+.vs
+*.rel
+*.lst
+*.sym
+bombs
+gulkave
+game/data/kings
+game/data/CWSDPMI.SWP
+
+# z88dk port artifacts
+build_phaseA/
+build_phaseB/
+build_phaseB_*/
+build_phaseC/
+
+# Reference ROMs (auto-downloaded by run_reference.sh from upstream release)
+ref_roms/
+
+# SDCC build artifacts (auto-generated, not part of z88dk port)
+game/src/Makefile.deps
+game/generated/enemy.h
+game/generated/knife.h

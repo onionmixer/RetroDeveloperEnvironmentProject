@@ -1,0 +1,21 @@
+;
+; to build the custom AKM player with song + effects
+;
+; z88dk port: assemble at $C200 so mplayer_engine_load() can LDIR-copy
+; this blob into RAM page 3 ($C000-$FFFF), which is RAM in both ROM
+; and DOS modes. (page 2 / $A000 is unmapped in z88dk's MSX cart CRT
+; because it ENASLTs the cart slot there.) See
+; Library/MSX/mplayer-z88dk/src/akm/akm_bridge.asm.
+ORG #C200
+
+include "song_playerconfig.asm"
+include "effects_playerconfig.asm"
+
+include "../../../src/mplayer/akm/akm_ubox.asm"
+
+songDisarkGenerateExternalLabel:
+include "song.asm"
+
+effectsDisarkGenerateExternalLabel:
+include "effects.asm"
+
