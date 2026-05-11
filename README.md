@@ -18,16 +18,32 @@ RetroDeveloperEnvironmentProject/
 │   └── x68000/toolchain/             #   m68k-xelf GCC
 ├── Library/                           # 라이브러리 / 프레임워크
 │   ├── AppleII/                       #   apple2flat, souless_apple2
+│   ├── MSX/                           #   MSX z88dk 가족 + 외부 framework
+│   │                                  #   - ubox-msx-lib-z88dk   (ubox z88dk port, DOS2 BIOS fix + Phase 7)
+│   │                                  #   - spman-z88dk          (sprite manager z88dk port)
+│   │                                  #   - mplayer-z88dk        (Arkos 2 AKM real z88dk port)
+│   │                                  #   - mplayer-z88dk-stub   (silent fallback)
+│   │                                  #   - ap-z88dk             (aplib decompressor z88dk port)
+│   │                                  #   - ubox-msx-lib-1.2.0   (SDCC ubox 원본, reference)
+│   │                                  #   - MSXgl                (AKG/AKM 소스 참조 framework, SDCC 기반)
 │   ├── x68000/                        #   X68KTutorials
 │   └── Retro68/                       #   Macintosh 68K/PowerPC 크로스 툴체인
 ├── RetroDeveloperEnvironmentDisktool/ # 디스크 이미지 조작 도구
 ├── RetroDeveloperEnvironmentMonitor/  # 에뮬레이터 디버그 모니터
-├── Examples/                          # 튜토리얼 / 예제 (Tutorial_*, prototype_*)
+├── Examples/                          # 튜토리얼 / 예제 / 워크스페이스 흡수 프로젝트
+│                                      #   - Tutorial_*                       (Hi-Tech / z88dk 튜토리얼)
+│                                      #   - prototype_01_* / 02_*            (자체 프로토타입, tracked)
+│                                      #   - prototype_05_MSX_ROM_MSXDOS      (MSX z88dk 주요 reference)
+│                                      #   - prototype_03+ / 04 / 06+         (local-only)
+│                                      #   - kingsvalley_z88dk                (King's Valley z88dk 포팅, 흡수)
+│                                      #   - ubox_example_z88dk               (ubox 12 예제 z88dk 포팅, 흡수)
 ├── diskwork/                          # 디스크 이미지 작업 영역
 │   ├── bootdisk/                      #   부팅 가능 시스템 디스크 (플랫폼별)
 │   └── emptydisk/                     #   빈/사전 포맷 템플릿 (플랫폼별)
-├── resource/                          # 참고 자료 / 레퍼런스
+├── resource/                          # 참고 자료 / 레퍼런스 (외부)
+│   ├── AppleII/                       #   prodos 등
 │   ├── Macintosh/                     #   QuickDraw 원본 + Mac ROM 배치 위치
+│   ├── MSX/                           #   kingsvalley, ubox_example, noborunoca, z88dk-msx-template (외부 reference)
 │   └── x68000/                        #   기술 자료, 라이브러리
 ├── resource_extra/                    # 부가 도구 (zxcc 등)
 ├── specs/                             # 스펙 / 작업 기록
@@ -87,17 +103,44 @@ RetroDeveloperEnvironmentProject/
 |----------|------|
 | [`resource_extra/zxcc/zxcc-debian`](https://github.com/onionmixer/zxcc-debian) | ZXCC의 Debian/Ubuntu 패키징. John Elliott의 CP/M 2/3 에뮬레이터로, Linux/Unix/macOS에서 Hi-Tech C 등 CP/M 도구를 크로스 실행할 수 있게 합니다. |
 
+## 흡수된 워크스페이스 / 비서브모듈 구성요소
+
+위 19개 git 서브모듈 외에, 본 워크스페이스에는 **자체 git 없이 in-tree 로 흡수된**
+다음 components 도 포함됩니다. 각자의 라이선스를 따르며 (§"라이선스" 참조), 일부는
+upstream 의 fork 또는 z88dk 호환 port 입니다.
+
+| 위치 | 설명 |
+|------|------|
+| `Library/MSX/ubox-msx-lib-z88dk/` | ubox library z88dk port. MSX-DOS2 BIOS fix + Phase 7 개선 |
+| `Library/MSX/spman-z88dk/` | sprite manager z88dk port |
+| `Library/MSX/mplayer-z88dk/` | Arkos 2 AKM player real z88dk port |
+| `Library/MSX/mplayer-z88dk-stub/` | silent placeholder (mplayer 회귀 시 fallback) |
+| `Library/MSX/ap-z88dk/` | aplib decompressor z88dk port (kingsvalley 등에서 사용) |
+| `Library/MSX/ubox-msx-lib-1.2.0/` | ubox SDCC 원본 (reference, 빌드 안 함) |
+| `Library/MSX/MSXgl/` | AKG/AKM 소스 참조 framework (SDCC 기반, `engine/src/arkos/` 가 z88dk port 의 출처) |
+| `Examples/kingsvalley_z88dk/` | King's Valley z88dk 포팅 (Phase A/B/C 마이그레이션, 자체 git 흡수 후 workspace tracked) |
+| `Examples/ubox_example_z88dk/` | ubox 12 예제 z88dk 포팅 (자체 git 흡수, 10/12 ROM+DOS 완료) |
+| `resource/MSX/{kingsvalley, ubox_example, noborunoca, z88dk-msx-template}` | 외부 reference 프로젝트 (local clone, 빌드 안 함) |
+
+z88dk 자체 (`/opt/z88dk/bin/zcc`, `sccz80`) 는 본 저장소에 포함되지 않습니다 —
+시스템에 별도 설치 (자세한 의존성/설치 가이드는 `REQUIREMENTS.md` §2).
+
 ## 빠른 시작
+
+> 본 절은 **핵심 자체 도구 + Macintosh 환경** 최소 빌드 만 다룹니다. 에뮬레이터 빌드
+> (AppleWin, openMSX, px68k-onionmixer) 와 z88dk / Hi-Tech C 환경 설정은
+> `REQUIREMENTS.md` §3-12 참조.
 
 ### 주요 도구 빌드
 
 ```bash
-# rdedisktool
+# rdedisktool (의존: cmake)
 cd RetroDeveloperEnvironmentDisktool
 mkdir -p build && cd build
 cmake .. && make -j"$(nproc)"
 
-# rdemonitor
+# rdemonitor (의존: libncurses-dev libcjson-dev)
+sudo apt install libncurses-dev libcjson-dev
 cd ../../RetroDeveloperEnvironmentMonitor
 make
 
@@ -106,10 +149,21 @@ sudo apt install libasound2-dev pkg-config
 # rustup이 없으면: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
 cd ../Emulator/macintosh/snow && cargo build --release
 
-# Retro68 Mac 크로스 툴체인 (out-of-source 빌드, ~20-30분)
+# Retro68 Mac 크로스 툴체인 (out-of-source 빌드, ~30-60분)
 sudo apt install cmake libgmp-dev libmpfr-dev libmpc-dev libboost-all-dev bison flex texinfo ruby
 mkdir -p ../../../Library/Retro68-build && cd ../../../Library/Retro68-build
 ../Retro68/build-toolchain.bash --no-ppc
+```
+
+### z88dk MSX 환경 (별도 설치 후)
+
+```bash
+# z88dk 가 /opt/z88dk 에 설치된 경우 (REQUIREMENTS.md §2 참조)
+export PATH=/opt/z88dk/bin:$PATH
+export ZCCCFG=/opt/z88dk/lib/config
+
+# 검증
+zcc --version    # sccz80 version 출력
 ```
 
 ### 플랫폼별 실행
@@ -139,21 +193,43 @@ mkdir -p ../../../Library/Retro68-build && cd ../../../Library/Retro68-build
 
 ## 라이선스
 
-이 프로젝트의 자체 구성요소(워크스페이스 스크립트, 문서, 자체 도구 `rdedisktool` / `rdemonitor` 등)는 [MIT License](LICENSE)로 배포됩니다.
+본 프로젝트의 **워크스페이스 자체 구성요소** (스크립트, 문서, 자체 도구
+`rdedisktool` / `rdemonitor`, 워크스페이스 glue 코드) 는 [MIT License](LICENSE)
+로 배포됩니다.
 
-**각 서브모듈은 각자의 라이선스를 따릅니다.** 사용·수정·재배포 시 반드시 해당 서브모듈의 `LICENSE` / `COPYING` / `README` 파일을 확인하세요. 주요 사례:
+⚠️ **그 외 in-tree components 는 각자의 라이선스를 따릅니다** — 사용·수정·재배포 시
+반드시 해당 디렉터리의 `LICENSE` / `COPYING` / `README` 를 확인하세요. 크게 두 부류:
+
+### 서브모듈 (19개) 의 주요 라이선스
 
 | 서브모듈 | 라이선스 |
 |----------|---------|
 | `Library/Retro68` | GPL3+ (libretro 런타임은 GCC 런타임 예외 포함) |
 | `Emulator/macintosh/snow` | MIT |
+| `Emulator/openMSX` (fork) | GPL-2.0+ |
+| `Emulator/AppleWin` (fork) | GPL-2.0+ |
 | `Emulator/x68000/mame` | BSD-3-Clause / GPL-2.0+ (구성 요소별) |
-| `resource/Macintosh/QuickDraw` | Apple 원본 (NOASSERTION, 재배포·파생물 제한) |
+| `resource/Macintosh/QuickDraw` | NOASSERTION (Apple 원본, license file 없음 — reference-only 권장) |
 | 그 외 | 각 서브모듈의 LICENSE 파일 참조 |
 
-또한 다음 자료는 저작권상 본 저장소에 **포함되지 않으며**, 사용자가 합법적인 경로로 직접 확보해 각 디렉터리의 README가 안내하는 위치에 배치해야 합니다.
+### 흡수된 in-tree workspace 의 라이선스
+
+| 위치 | 라이선스 | 비고 |
+|------|---------|------|
+| `Examples/kingsvalley_z88dk/` | MIT (LICENSE file 참조) | upstream pdpdds/kingsvalley fork |
+| `Examples/ubox_example_z88dk/` | **GPL-2.0** | upstream pdpdds/ubox_example fork — z88dk port 작업 결과 포함 |
+| `Library/MSX/ubox-msx-lib-1.2.0/` | MIT | Juan J. Martinez 의 ubox SDCC 원본 |
+| `Library/MSX/ubox-msx-lib-z88dk/` | MIT (ubox 1.2.0 상속) | z88dk port |
+| `Library/MSX/MSXgl/` | **CC BY-SA 4.0** | upstream Aoineko-Studio/MSXgl 의 in-tree clone |
+| `Library/MSX/{spman, mplayer, ap}-z88dk/` | MIT 또는 upstream 상속 | 각 디렉터리 README 참조 |
+| `resource/MSX/{kingsvalley, ubox_example, noborunoca, z88dk-msx-template}` | 각 upstream | reference-only, 빌드/링크 안 함 |
+
+### 본 저장소에 포함되지 않는 자료 (사용자가 직접 배치)
+
+저작권상 다음 자료는 본 저장소에 포함되지 않습니다 — 사용자가 합법적인 경로로
+확보해 각 디렉터리의 README 가 안내하는 위치에 배치해야 합니다.
 
 - Macintosh ROM (`resource/Macintosh/rom/`)
 - 클래식 Mac System 6/7 부팅 디스크 (`diskwork/bootdisk/macintosh/`)
 - MPW Universal Interfaces (필요 시 `Library/Retro68/InterfacesAndLibraries/`)
-- 그 외 각 플랫폼의 BIOS/ROM/System 자료
+- 그 외 각 플랫폼의 BIOS / ROM / System 자료
