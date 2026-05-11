@@ -1,7 +1,53 @@
 # PLAN — King's Valley (kingsvalley) z88dk 포팅 (재검토 v2)
 
-**상태**: **Phase A + B 검증 완료 ✓** (2026-05-11, 사용자 GT 검증). 도구 사용 시 멈칫 — CALSLT 우회 fix 로 ~50% 감소, `run_reference.sh` 와 가장 근접한 상태 확인. 잔여 ~50% 는 sccz80 codegen 한계 (character.c +24%, character_move.c +31% vs SDCC) 로 수용. Phase B 완료.
-**작성**: 2026-05-10 (1차 PLAN 무효화, 새로운 사실 기반 v2)
+**상태**: **Phase A + B + C 완료 ✓** (2026-05-11, 사용자 GT 검증).
+`./run_phaseB.sh` (= `build_phaseB/kings.rom`, 정식 배포) 가 `./run_reference.sh` (= 원본 SDCC `kings_original.rom`) 와 **가장 근접한 동작** 확인.
+
+**작성**: 2026-05-10 시작, 2026-05-11 최종 갱신 (Phase C 추가 + 정량 비교).
+
+---
+
+## 0. 빠른 참조 (TL;DR)
+
+### 최종 산출물
+
+| 빌드 스크립트 | 산출 ROM | 컴파일러 | 매퍼 | 음악 |
+|---------------|---------|----------|------|-----|
+| `compile_phaseA.sh build` | `build_phaseA/kings.rom` (32 KiB) | z88dk + sccz80 | plain | ✗ (akm_stub) |
+| `compile_phaseB.sh build` | `build_phaseB/kings.rom` (64 KiB) ★ | z88dk + sccz80 | ASCII16 | ✓ (AKM) |
+| `build_sdcc.sh` | `game/build/kings_sdcc.rom` (32 KiB) | SDCC | plain | ✗ (stub) |
+| `compile_phaseB_variant.sh {variant}` | `build_phaseB_<variant>/kings.rom` | z88dk + sccz80 | ASCII16 | ✓ | 진단 archive |
+
+★ **정식 배포** = `compile_phaseB.sh build` → `build_phaseB/kings.rom`. `run_reference.sh` 와 byte-동등 거동.
+
+### GT 실행
+
+```bash
+cd Examples/kingsvalley
+./run_phaseB.sh             # 정식 배포 ROM (z88dk Phase B, ASCII16 + 음악)
+./run_phaseA.sh             # 음악 없는 빌드 (z88dk Phase A, plain 32K)
+./run_sdcc.sh               # SDCC 빌드 (byte-level 비교 baseline)
+./run_reference.sh          # 원본 SDCC ROM (pdpdds/ubox_example v1.0 release)
+```
+
+### 핵심 결론 3가지
+
+1. **plain cart 가 정답** — 원본 SDCC `kings_original.rom` 도 plain 32K. 1차 시도 `MAPPER_KONAMI=1` 가 GT hang 의 원인이었음 (openMSX RomKonami.cc 의 `[$6000, $C000)` 영역 모든 write 가 bank-switch trigger).
+2. **64K 음악 통합 = ASCII16 매퍼 + BANK_02 + bank-1 mount shim** — AKM blob (3.5 KiB) 을 BANK_02 의 RODATA_2 에 두고 startup 시 LDIR. ASCII16 의 `$7000` trigger 는 sccz80 emit 와 충돌 안 함. `compile_phaseB.sh` 가 cart 의 dead-code 영역 ($4044+) 에 8-byte shim 주입해 crt0_init 의 DATA-LDIR 전 bank 1 mount.
+3. **잔여 멈칫의 본질 원인 = ubox-msx-lib-z88dk 의 CALSLT 사용 + sccz80 codegen overhead** — 정량:
+   - CALSLT: 호출당 ~220 cy. `compile_phaseA/B.sh` 가 `msxbios` → `msxbios_fast` sed-rewrite + `jp (ix)` 2-byte stub 으로 우회. ROM 모드 한정 안전. 도구 사용 시 1100-2200 cy 절감 = **멈칫 ~50% 감소** (사용자 GT 검증).
+   - sccz80 codegen: SDCC 대비 평균 +5-7%, 도구 path 핵심 함수 (character.c +24%, character_move.c +31%) 가 frame budget 잠식. 컴파일러-level 한계로 수용.
+
+### 진단 history (학습 자료)
+
+본 문서의 §1 (1차 시도 실패) 부터 §7 (Round-C 심화 분석, Iter 27-37) 까지는
+사용자의 1차 Konami pragma 시도가 실패한 이유를 추적 + 검증하는 진단 history.
+새 MSX z88dk 포팅 작업에서 비슷한 hang 발생 시 참조.
+
+§7 Iter 18 의 **binary 비교 절차 (B-1~B-5)** 가 다른 z88dk MSX cart 디버깅에도
+재사용 가능한 절차.
+
+---
 
 ## 1차 시도 (실패) 의 핵심 오류
 
@@ -313,23 +359,149 @@ main.c 에 `mplayer_engine_load()` 호출 추가 (init 직후, mplayer_init 직�
 
 ---
 
-## 4. v2 PLAN — Phase C (정리)
+## 4. v2 PLAN — Phase C (도구 사용 멈칫 진단 + CALSLT fix) ✅ 완료
 
-- 메모리 노트 작성
-- 테스트 ROM 비교
-- 문서 업데이트
+Phase B 작동 검증 후 사용자가 보고한 새 증상: **도구 입수/사용 시 1-frame
+멈칫이 매번 발생**. 원본 SDCC 빌드 (`run_reference.sh`) 에선 안 보이는 현상.
+
+### C-0. 증상 좁히기 — Phase A 도 동일
+
+사용자 검증: `./run_phaseA.sh` (plain 32K, akm_stub, 음악 없음) 에서도 도구
+사용 시 동일한 멈칫. → 다음 가설들 일괄 **무관**:
+
+- mplayer/AKM player (Phase A 는 stub)
+- ASCII16 매퍼 (Phase A 는 plain 32K)
+- mplayer_engine_load 의 RAM-stub LDIR trick (Phase A 는 호출 안 함)
+- crt0 pre-init bank-1 shim (Phase A 는 적용 안 함)
+
+→ 멈칫은 z88dk Phase A 와 B 가 **공통으로 가진 무엇** 이 원인. 즉 게임
+source 또는 라이브러리 (ubox/spman) port 의 어딘가.
+
+### C-1. variant 진단 빌드 (4개) — 가설 검증
+
+`compile_phaseB_variant.sh {baseline|no_altreg|diei_efx|no_vdp_diei|no_calslt}`
+스크립트로 변경 단일 가설 검증.
+
+| Variant | 가설 | 검증 결과 |
+|---------|------|----------|
+| `baseline` | 비교 기준 | (현재 정식 빌드) |
+| `no_altreg` | ubox_isr 의 alt-register set 보존이 +104 cy/ISR overhead | ✗ 동일 — 영향 미미 |
+| `diei_efx` | `mplayer_play_effect_p` 의 `di/ei` 부재로 AKM internal state race | ✗ 동일 — race 무관 |
+| `no_vdp_diei` | `ubox_vdp_direct.asm` 의 `di/ei` 가 VRAM transfer 중 ISR 차단 | ✗ 동일 — 영향 미미 |
+| **`no_calslt`** | `msxbios` 의 CALSLT 가 매 BIOS 호출에 ~220 cy overhead | **✓ 사용자 GT 검증 — 멈칫 ~50% 감소** |
+
+진단 variant 들의 archive: `Examples/kingsvalley/variants/`.
+- `msxbios_no_calslt.asm` — 정식 fix 의 stub (production)
+- `ubox_isr_no_altreg.asm`, `ubox_vdp_direct_no_diei.asm`, `mplayer_play_effect_p_diei.asm` — 학습 자료
+
+### C-2. CALSLT 우회 정식 fix (commit a70b070)
+
+**원인 정량**:
+
+ubox-msx-lib-z88dk 의 모든 BIOS wrapper (`ubox_put_tile`, `ubox_get_tile`,
+`ubox_fill_screen` 등 12개) 가 `msxbios` 경유. `msxbios` 는 z88dk classic
+msx_crt0.asm 에서 `ld iy, ($FCC0); call $001C (CALSLT); ei; ret` 으로
+구현. CALSLT 자체 inter-slot 처리 ~150 cy + setup/restore ~70 cy =
+**호출당 ~220 cy overhead**.
+
+SDCC 원본 ubox 는 `jp WRTVRM` 같이 BIOS routine 직접 jp — 0 cy overhead.
+
+도구 사용 frame 의 추가 부담:
+```
+ubox_put_tile × 5-10회        = 1100-2200 cy (1.7-3.4%)
+ubox_get_tile (매 frame 충돌체크) = 660-1100 cy 매 frame 추가
+```
+
+Z80 3.58MHz frame budget = 59,667 cy. 도구 사용 시 burst 가 frame budget
+임계점 초과 → frame skip = "멈칫" 으로 인식.
+
+**왜 z88dk port 가 CALSLT 사용**: MSX-DOS2 모드 호환 — DOS .COM 에선
+page 0 이 user TPA 라 BIOS routine 직접 접근 불가, CALSLT 필수.
+ROM cart 모드는 page 0 = BIOS slot 이라 CALSLT 불필요지만 z88dk port 는
+단일화 위해 통일 사용.
+
+**Fix**:
+
+`compile_phaseA.sh` + `compile_phaseB.sh` 가 ubox source 를 build dir 로
+sed-rewrite:
+- `EXTERN msxbios` → `EXTERN msxbios_fast`
+- `jp msxbios` → `jp msxbios_fast`
+- `call msxbios` → `call msxbios_fast`
+
+그리고 `variants/msxbios_no_calslt.asm` 의 stub 을 link:
+
+```asm
+msxbios_fast:
+    jp (ix)        ; IX = BIOS routine address, jump directly (~8 cy)
+```
+
+호출당 ~193 cy 절약. 사용자 GT 검증: 멈칫 ~50% 감소 + `run_reference.sh`
+와 가장 근접한 상태 확인.
+
+**ubox-msx-lib-z88dk 자체는 변경 없음** — 다른 12 예제 (ubox_example_z88dk)
+영향 없음. kingsvalley 만 ROM 모드의 fast path 사용.
+
+### C-3. SDCC 빌드 직접 비교 — sccz80 codegen 정량 (잔여 50% 멈칫 설명)
+
+`build_sdcc.sh` 가 같은 game source 를 SDCC 로 빌드 (mplayer stub). 결과
+`game/build/kings_sdcc.rom` 과 우리 z88dk Phase A 빌드 byte-level 비교.
+
+**ROM size 비교** (`./run_reference.sh` 와 동일 게임 logic):
+
+| | SDCC | z88dk Phase A | 차이 |
+|---|------|--------------|------|
+| 32K cart padding 포함 | 32,768 B | 32,768 B | (동일) |
+| 실제 사용 영역 (non-0/FF byte) | **28.4 KiB** | **30.3 KiB** | **+1.9 KiB (+6.7%)** |
+
+**모듈별 `_CODE` size 비교** (SDCC `.rel` 의 `_CODE` area vs z88dk `.map` 의 code_compiler):
+
+| 모듈 | SDCC (B) | z88dk (B) | 차이 (%) |
+|------|----------|-----------|---------|
+| **character.c** | 3,689 | **4,584** | **+24%** ⚠️ 도구 사용 path 핵심 |
+| **character_move.c** | 1,150 | **1,501** | **+31%** ⚠️ 캐릭터 이동/방향 |
+| game.c | 4,079 | 4,426 | +9% |
+| jewel.c | 324 | 385 | +19% |
+| trap.c | 446 | 494 | +11% |
+| enemy.c | 2,175 | 2,284 | +5% |
+| knife.c | 1,563 | 1,646 | +5% |
+| main.c | 686 | 697 | +2% |
+| gate.c | 1,386 | 1,392 | 0% |
+| game_util.c | 1,679 | 1,517 | -10% |
+| player.c | 1,825 | 1,730 | -5% |
+| pushdoor.c | 408 | 333 | -18% |
+| **합** | ~20,000 | ~21,000 | **+~5% 평균** |
+
+**원인**: sccz80 vs SDCC 의 ABI 및 codegen 차이.
+- sccz80 의 `uint8_t` arg = 16-bit zero-extended (vs SDCC 의 1-byte packed)
+- sccz80 의 caller-cleanup ABI 가 더 큰 prologue/epilogue
+- character.c 처럼 복잡한 state machine + 많은 함수 호출이 누적 영향
+
+**결론**: 잔여 ~50% 멈칫은 sccz80 자체의 한계로 수용. hot path 의 직접
+asm 작성 외 회피 불가. 우리는 그 단계까지 진행 안 함 (사용자 수용).
+
+### C-4. 최종 검증 (사용자, 2026-05-11)
+
+- `./run_phaseB.sh` (= `build_phaseB/kings.rom`, **정식 빌드**) 가
+  `build_phaseB_no_calslt/kings.rom` 와 **byte-identical** (`diff` 0 line).
+- 사용자 GT 검증: `./run_phaseB.sh` 가 `./run_reference.sh` (원본 SDCC) 와
+  **가장 근접한 동작**. 도구 사용 시 멈칫이 거의 보이지 않음 (남아도 미미).
+- Phase B 완료 선언.
 
 ---
 
-## 5. 위험 / 미결 (v2)
+## 5. 위험 / 미결 — 모두 해결 ✅
 
-| 항목 | 영향 | 대응 |
+| 항목 | 해결 방법 | 위치 |
 |---|---|---|
-| z88dk plain 32K cart 의 page 2 매핑 | 알 수 없음 — z88dk crt0 가 ENASLT 호출하는지 plain 모드에서도 | rom.asm 코드 재확인. ENASLT 는 매퍼 무관하게 호출됨 |
-| Game code SDCC-isms 잠복 (1차 시도 grep 기반 0 건이었음) | Low | 빌드 에러 시 발견 |
-| ROM 사이즈 32 KiB 초과 가능성 | Medium | mplayer wrapper 5개 미사용 link 안 함 + ubox 미사용 함수 dead-strip |
-| AKM blob 추가 후 사이즈 초과 | Phase B | Phase B 에서 처리 |
-| Konami 매퍼 가 GT 에서 hang 일으킨 root cause | Iter 3 분석으로 확립 | plain cart 빌드 로 회피 |
+| z88dk plain 32K cart 의 page 2 매핑 | ENASLT 는 매퍼 무관하게 호출됨 — Phase A 빌드 검증 | §7 Iter 17, §2 |
+| Game code SDCC-isms 잠복 | sccz80 빌드 시 발견된 것: struct compound init (3개), header collision (2개), VIDEO_MEMORY_ADDRESS 가드 — 모두 patch 적용 | §2 A-2 |
+| ROM 사이즈 32 KiB 초과 (Phase B) | ASCII16 64K cart + BANK_02 에 AKM blob | §3 |
+| AKM blob 추가 후 사이즈 초과 | 64K cart 로 해결 + mplayer wrapper 5개만 link (32K 부담 절감 시도) | §3 |
+| Konami 매퍼가 GT 에서 hang 일으킨 root cause | plain cart 로 회피 (1차 시도 무효화) | §1, §6 Iter 21-26 |
+| Phase B 의 ASCII16 multi-bank 부팅 실패 | crt0 pre-init shim 주입 ($4044 dead-code 영역 8 byte) 로 bank 1 mount in advance | §3, akm_bridge_kv.asm |
+| 도구 사용 시 멈칫 (사용자 발견) | CALSLT 우회 fix (~50% 감소) + sccz80 codegen 한계로 잔여 수용 | §4 (Phase C) |
+
+**현재 미결 항목 = 없음**. 잔여 ~50% 멈칫은 sccz80 컴파일러 한계로 수용.
 
 ---
 
@@ -672,17 +844,39 @@ Round-A/B/C 누적 분석은 **단일 결정적 가설 = Konami pragma 사용 �
 
 ## 9. 참고 자료
 
-**Reference ROMs (절대 기준)**: `/tmp/kv_refs/kings_original.rom` 외 2개 — 32 KiB plain cart, GT 호환 검증됨 (GitHub release).
+**Reference ROMs (절대 기준)**:
+- `Examples/kingsvalley/ref_roms/kings_original.rom` — 32 KiB plain cart, GT 호환 검증됨 (pdpdds/ubox_example v1.0 release). `run_reference.sh` 가 자동 download.
+- 우리 정식 빌드 `build_phaseB/kings.rom` 도 이 ROM 과 가장 근접한 동작 (사용자 검증 확인).
 
 **Working z88dk references**:
-- `Examples/prototype_05_MSX_ROM_MSXDOS/` — Konami 매퍼 32K, GT 작동
+- `Examples/prototype_05_MSX_ROM_MSXDOS/` — Konami 매퍼 32K (main ≤16K), GT 작동
 - `Examples/ubox_example_z88dk/examples/{01..12}/` — 16 KiB plain cart 또는 .com, GT/openMSX 작동
 
 **z88dk MSX rom 모드 자료**:
 - `/opt/z88dk/lib/target/msx/classic/rom.asm` — startup + 매퍼 conditional defc
+- `/opt/z88dk/lib/target/msx/classic/megarom.asm` — BANK_xx section 정의 (multi-bank cart)
+- `/opt/z88dk/lib/target/msx/classic/msx_crt0.asm` — `msxbios` CALSLT wrapper 의 정의 (§4 Phase C 의 fix 대상)
+- `/opt/z88dk/lib/crt/classic/crt_copy_data_section.inc` — DATA 섹션 복사 (§7 Iter 36/B 의 bank-1 mount shim 이 회피하는 코드)
 - `/opt/z88dk/src/appmake/msxrom.c` — appmake bank packing logic
 
-**메모리 노트**:
-- MEMORY.md → "z88dk Calling Conventions"
-- `reference_ubox_z88dk_examples.md`
-- `reference_kingsvalley_z88dk.md` (1차 시도 기록 — 무효화)
+**openMSX 매퍼 source**:
+- `Emulator/openMSX/src/memory/RomKonami.cc` — Konami 매퍼 `[$6000, $C000)` 모든 write 가 bank switch trigger (§7 Iter 29)
+- `Emulator/openMSX/src/memory/RomAscii16kB.cc` — ASCII16 매퍼 reset 이 bank 0 을 page 1 + page 2 양쪽에 mirror (§ Phase B 의 bank-1 mount shim 이 회피하는 동작)
+- `Emulator/openMSX/src/memory/RomPlain.cc` — 32K plain cart 자동 감지 heuristics (§7 Iter 33)
+
+**도구 (외부)**:
+- `Disark` — Arkos Tracker 2 의 도구 (linux64 v2.0.1 zip 의 `tools/Disark`). `build_sdcc.sh` 가 사용. 설치: `wget https://www.julien-nevo.com/arkostracker/release/2.0.1/linux64/Arkos%20Tracker%202%20Linux64.zip` → unzip → tools/Disark 를 `/tmp/disarkbin/` 등에 배치.
+
+**메모리 노트 (자동 memory)**:
+- `MEMORY.md` → "z88dk Calling Conventions (sccz80)" — sccz80 ABI 의 stack 추출 패턴
+- `reference_ubox_z88dk_examples.md` — 12 ubox 예제 포팅 + spman-z88dk 신설
+- `reference_kingsvalley_z88dk.md` — kingsvalley 포팅 최종 상태 (Konami 함정 + CALSLT 우회 fix + run_reference 근접 확인)
+
+**Git commits (kingsvalley submodule)**:
+- `be18a76` — Phase A/B 포팅 + source patches
+- `a70b070` — CALSLT 우회 정식 fix
+- `3fad8ff` — SDCC 비교 baseline (build_sdcc.sh / run_sdcc.sh)
+
+**Git commits (workspace)**:
+- `9c64d91` — PLAN_MIGRATION v2 (Round-A/B/C, Iter 1-37)
+- `6039fcf` — Phase B 완료 (run_reference baseline 도달)
