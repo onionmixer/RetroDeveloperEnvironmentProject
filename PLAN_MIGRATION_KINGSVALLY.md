@@ -1,6 +1,6 @@
 # PLAN — King's Valley (kingsvalley) z88dk 포팅 (재검토 v2)
 
-**상태**: **Phase A 검증 완료 ✓** (2026-05-10, 사용자 GT 검증 — 타이틀 + 게임 진행 OK, 음악 없음). Phase B (음악) 대기.
+**상태**: **Phase A + B 검증 완료 ✓** (2026-05-11, 사용자 GT 검증). 도구 사용 시 멈칫 — CALSLT 우회 fix 로 ~50% 감소, `run_reference.sh` 와 가장 근접한 상태 확인. 잔여 ~50% 는 sccz80 codegen 한계 (character.c +24%, character_move.c +31% vs SDCC) 로 수용. Phase B 완료.
 **작성**: 2026-05-10 (1차 PLAN 무효화, 새로운 사실 기반 v2)
 
 ## 1차 시도 (실패) 의 핵심 오류
@@ -635,12 +635,38 @@ Round-A/B/C 누적 분석은 **단일 결정적 가설 = Konami pragma 사용 �
 6. ☑ 빌드 → 32,768 B plain ROM 산출. GT 검증 — 타이틀 + 게임 진행 OK
 7. ☑ Iter 34 binary 비교 절차 통과 (B-1~B-5)
 
-### Phase B — AKM 음악
+### Phase B — AKM 음악 ✅ **완료**
 
-1. ☐ `game/src/akm.z80` 에 `ORG #...` 추가 (Phase A 성공 후 BSS 위 안전 주소 결정)
-2. ☐ akm_bridge.asm + INCBIN 통합
-3. ☐ main.c 에 `mplayer_engine_load()` 호출 추가
-4. ☐ 음악/효과음 검증
+1. ☑ `game/src/akm.z80` 에 `ORG #D500` 추가 (BSS_END_tail $D490 위, stack $F380 미만 안전 영역)
+2. ☑ akm_bridge_kv.asm — RAM-stub LDIR trick (bank 2 unmount 시 자기 unmap 회피)
+3. ☑ main.c 에 `mplayer_engine_load()` 호출 추가
+4. ☑ 음악/효과음 GT 검증
+
+### Phase C — 잔여 멈칫 진단 + CALSLT fix ✅ **완료** (commit a70b070)
+
+도구 입수/사용 시 1-frame 멈칫 — Phase A 도 동일 발생 (mplayer/매퍼/AKM race 모두 무관).
+4 variant 빌드 검증 후 결정적 원인 확인:
+
+1. ☑ **CALSLT 우회 fix** — ubox-msx-lib-z88dk 의 모든 BIOS wrapper 가 `msxbios` 경유 (CALSLT inter-slot call, ~220 cy/호출 overhead). SDCC 원본은 `jp WRTVRM` 직접 (0 cy). ROM 모드에선 page 0 = BIOS slot 이라 CALSLT 불필요.
+   - `compile_phaseA/B.sh` 가 ubox source 의 `msxbios` → `msxbios_fast` sed-rewrite + `variants/msxbios_no_calslt.asm` 의 `jp (ix)` 2-byte stub link
+   - 호출당 ~193 cy 절약, 도구 사용 시 1100-2200 cy/frame 절감 (1.7-3.4%)
+   - 사용자 GT 검증: 멈칫 ~50% 감소, `run_reference.sh` 와 가장 근접한 상태 확인 ✓
+2. ☑ 잔여 ~50% 멈칫 = sccz80 codegen 한계
+   - SDCC 직접 빌드 (`build_sdcc.sh` → `kings_sdcc.rom`) vs z88dk Phase A 정량 비교
+   - 도구 path 핵심: **character.c +24% (3,689→4,584B), character_move.c +31% (1,150→1,501B)**
+   - 평균 game C 코드 size +5-7%, 컴파일러 자체 한계로 수용
+
+### 최종 산출물
+
+| 스크립트 | ROM | 용도 |
+|---------|-----|------|
+| `compile_phaseA.sh` | `build_phaseA/kings.rom` (32K plain, 음악 없음) | minimal viable boot |
+| `compile_phaseB.sh` | `build_phaseB/kings.rom` (64K ASCII16, 음악 있음) | **정식 배포** |
+| `build_sdcc.sh` | `game/build/kings_sdcc.rom` (32K plain, SDCC + mplayer stub) | byte-level 비교 baseline |
+| `run_phaseA.sh` / `run_phaseB.sh` / `run_sdcc.sh` / `run_reference.sh` | (각 ROM 실행) | GT 검증 |
+| `compile_phaseB_variant.sh` + `variants/` | 4개 진단 variant | 가설 검증 archive (재발 시 참조) |
+
+`compile_phaseB.sh` 의 정식 빌드 = `build_phaseB_no_calslt` variant 와 **byte-identical** (사용자 검증 확인). `run_reference.sh` (원본 SDCC) 와 가장 근접한 동작.
 
 ---
 
