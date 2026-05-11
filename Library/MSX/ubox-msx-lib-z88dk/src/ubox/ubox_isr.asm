@@ -36,9 +36,22 @@ _ubox_init_isr:
     ret
 
 ubox_isr:
+    ; Preserve main register set.
     push af
     push ix
     push iy
+    push bc
+    push hl
+    push de
+    ; Preserve alternate register set too — required because user ISR
+    ; bodies (notably the Arkos 2 AKM player) use EXX / EX AF,AF'
+    ; extensively. Earlier the SDCC version skipped this because the
+    ; SDCC examples never used the alternate set in main flow. The
+    ; z88dk port saves them unconditionally so ISR-driven AKM stays
+    ; safe to combine with any caller code.
+    ex af, af'
+    push af
+    exx
     push bc
     push hl
     push de
@@ -67,6 +80,14 @@ ubox_isr:
     call ubox_call_hl
 
 no_user_isr:
+    ; Restore alternate set
+    pop de
+    pop hl
+    pop bc
+    exx
+    pop af
+    ex af, af'
+    ; Restore main set
     pop de
     pop hl
     pop bc

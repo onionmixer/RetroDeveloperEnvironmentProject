@@ -39,11 +39,12 @@ void ubox_read_vm(uint8_t *dst, uint16_t len, const uint8_t *src) __z88dk_callee
 void ubox_wvdp(uint8_t reg, uint8_t data) __z88dk_callee;
 uint8_t ubox_get_vsync_freq(void);
 
-#define ubox_wait_vsync() do { \
-    __asm \
-    halt \
-    __endasm; \
-} while(0)
+/* Wait one VBlank (single `halt`).
+ * Was a macro in the SDCC port (`do { __asm halt __endasm; } while(0)`),
+ * but sccz80's preprocessor collapses the body onto a single line and
+ * fails with "Unknown symbol: __asm". Exported as a real function in
+ * the z88dk port (src/ubox/ubox_wait_vsync.asm). */
+void ubox_wait_vsync(void);
 
 // Tile functions
 
@@ -55,10 +56,51 @@ void ubox_fill_screen(uint8_t tile) __z88dk_fastcall;
 
 // Interrupt and clock functions
 
+/* Install the HTIMI ($FD9F) hook that drives ubox's ISR machinery
+ * (ubox_set_user_isr, ubox_wait, ubox_tick) and clear ubox_usr_isr.
+ *
+ * `wait_ticks` is the interrupts-per-tick threshold for `ubox_wait()`
+ * ONLY. It does NOT throttle the user ISR: any function registered
+ * via `ubox_set_user_isr()` fires every VBlank (50/60 Hz) regardless
+ * of `wait_ticks`. Common usage: pass 2 to make `ubox_wait()` pace
+ * the main loop at half the VBlank rate while the user ISR (e.g.
+ * Arkos 2 `mplayer_play`) still ticks every frame.
+ *
+ * ROM only — under MSX-DOS2 the HTIMI hook fires with BIOS ROM paged
+ * on page 0, hiding TPA, so any user ISR at $0100+ is unreachable.
+ * DOS builds must NOT call this and must define their own `ubox_wait`
+ * (see `ubox_wait` below). */
 void ubox_init_isr(uint8_t wait_ticks) __z88dk_fastcall;
 void ubox_set_user_isr(void (*fn)(void)) __z88dk_fastcall;
+
+/* Wait `wait_ticks` interrupts (set by ubox_init_isr) then return.
+ *
+ * The library implementation polls ubox_isr_wait_tick (driven by the
+ * HTIMI hook) and is therefore ROM-only. For MSX-DOS2 builds, define
+ * your own `ubox_wait` in your code — the z88dk linker picks the
+ * user-defined symbol over the library version. The canonical halt
+ * pattern:
+ *
+ *     void ubox_wait(void) {
+ *         __asm
+ *         halt
+ *         __endasm;
+ *     }
+ *
+ * Use a single `halt` for one VBlank (matches user-ISR rate). Use
+ * two halts for the library's default 2-tick pacing. */
 void ubox_wait(void);
 void ubox_wait_for(uint8_t frames) __z88dk_fastcall;
+
+/* Cross-platform stub — always returns 1 on MSX (no host event loop).
+ * Lets `while (ubox_update()) { ... }` compile identically on SDL2/Allegro
+ * desktop ports and the MSX target. (kingsvalley fork extension.) */
+uint8_t ubox_update(void);
+
+/* 16-bit Galois LFSR PRNG. Internal seed lives in bss_user.
+ * (kingsvalley fork extension; ubox-msx-lib-1.2.0 upstream does not have it.) */
+void ubox_randomize(uint16_t seed) __z88dk_fastcall;
+uint16_t ubox_random(void);
 extern uint8_t ubox_tick;
 void ubox_reset_tick(void);
 

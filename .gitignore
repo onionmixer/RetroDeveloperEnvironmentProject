@@ -30,6 +30,8 @@ Library/Retro68-build/
 #  - Tutorial_*  : always tracked
 #  - prototype_01_*, prototype_02_*  : tracked
 #  - prototype_03_* and any later prototype_NN_*  : local-only (not committed)
+#  - kingsvalley_z88dk, ubox_example_z88dk  : tracked (자체 git 없음, workspace 흡수.
+#                                              build artifact 는 각 디렉터리의 .gitignore 가 처리)
 Examples/prototype_*
 !Examples/prototype_01_*
 !Examples/prototype_02_*
