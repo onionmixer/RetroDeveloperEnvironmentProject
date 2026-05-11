@@ -25,7 +25,7 @@ RetroDeveloperEnvironmentProject/
 │   │                                  #   - mplayer-z88dk-stub   (silent fallback)
 │   │                                  #   - ap-z88dk             (aplib decompressor z88dk port)
 │   │                                  #   - ubox-msx-lib-1.2.0   (SDCC ubox 원본, reference)
-│   │                                  #   - MSXgl                (AKG/AKM 소스 참조 framework, SDCC 기반)
+│   │                                  #   - MSXgl/               (★ submodule, AKG/AKM 소스 참조 framework)
 │   ├── x68000/                        #   X68KTutorials
 │   └── Retro68/                       #   Macintosh 68K/PowerPC 크로스 툴체인
 ├── RetroDeveloperEnvironmentDisktool/ # 디스크 이미지 조작 도구
@@ -52,7 +52,7 @@ RetroDeveloperEnvironmentProject/
 
 ## 서브모듈
 
-이 프로젝트는 다음 19개의 git 서브모듈로 구성되어 있습니다.
+이 프로젝트는 다음 20개의 git 서브모듈로 구성되어 있습니다.
 
 ### Emulator — 에뮬레이터
 
@@ -77,6 +77,7 @@ RetroDeveloperEnvironmentProject/
 |----------|------|
 | [`Library/AppleII/apple2flat`](https://github.com/bbbradsmith/apple2flat) | CC65 기반 Apple II C/ASM 프레임워크. 제한 없는 메모리 접근, 표준 플로피/오디오 테이프 부팅, 그래픽·입력 유틸리티 라이브러리를 제공합니다. |
 | [`Library/AppleII/souless_apple2`](https://github.com/gnos78/souless_apple2) | "Souless" — Apple II용 액션 플랫포머 게임. 다중 스테이지, 보스 전투, HGR 그래픽, Mockingboard/SD-Music 카드 오디오를 지원합니다. |
+| [`Library/MSX/MSXgl`](https://github.com/aoineko-fr/MSXgl) | MSXgl SDCC 기반 MSX game library framework. AKG/AKM Arkos 2 player 의 source 출처 (`engine/src/arkos/`). 본 저장소의 z88dk 가족 (mplayer-z88dk 등) 이 이 source 를 z80asm 호환으로 변환해 사용. |
 | [`Library/x68000/X68KTutorials`](https://github.com/FedericoTech/X68KTutorials) | X68000 개발 튜토리얼 및 예제 코드 모음. |
 | [`Library/Retro68`](https://github.com/autc04/Retro68) | Macintosh 68K / PowerPC 크로스 툴체인(@v2019.8.2-439-g83b9c8d2c5). gcc 12.2 + binutils 2.39 + Rez/Elf2Mac/MakePEF + multiversal 헤더. 빌드는 `Library/Retro68-build/`(out-of-source, gitignore)에 들어갑니다. |
 
@@ -117,7 +118,6 @@ upstream 의 fork 또는 z88dk 호환 port 입니다.
 | `Library/MSX/mplayer-z88dk-stub/` | silent placeholder (mplayer 회귀 시 fallback) |
 | `Library/MSX/ap-z88dk/` | aplib decompressor z88dk port (kingsvalley 등에서 사용) |
 | `Library/MSX/ubox-msx-lib-1.2.0/` | ubox SDCC 원본 (reference, 빌드 안 함) |
-| `Library/MSX/MSXgl/` | AKG/AKM 소스 참조 framework (SDCC 기반, `engine/src/arkos/` 가 z88dk port 의 출처) |
 | `Examples/kingsvalley_z88dk/` | King's Valley z88dk 포팅 (Phase A/B/C 마이그레이션, 자체 git 흡수 후 workspace tracked) |
 | `Examples/ubox_example_z88dk/` | ubox 12 예제 z88dk 포팅 (자체 git 흡수, 10/12 ROM+DOS 완료) |
 | `resource/MSX/{kingsvalley, ubox_example, noborunoca, z88dk-msx-template}` | 외부 reference 프로젝트 (local clone, 빌드 안 함) |
@@ -209,6 +209,7 @@ zcc --version    # sccz80 version 출력
 | `Emulator/openMSX` (fork) | GPL-2.0+ |
 | `Emulator/AppleWin` (fork) | GPL-2.0+ |
 | `Emulator/x68000/mame` | BSD-3-Clause / GPL-2.0+ (구성 요소별) |
+| `Library/MSX/MSXgl` | **CC BY-SA 4.0** (upstream Aoineko-Studio/MSXgl) |
 | `resource/Macintosh/QuickDraw` | NOASSERTION (Apple 원본, license file 없음 — reference-only 권장) |
 | 그 외 | 각 서브모듈의 LICENSE 파일 참조 |
 
@@ -220,7 +221,6 @@ zcc --version    # sccz80 version 출력
 | `Examples/ubox_example_z88dk/` | **GPL-2.0** | upstream pdpdds/ubox_example fork — z88dk port 작업 결과 포함 |
 | `Library/MSX/ubox-msx-lib-1.2.0/` | MIT | Juan J. Martinez 의 ubox SDCC 원본 |
 | `Library/MSX/ubox-msx-lib-z88dk/` | MIT (ubox 1.2.0 상속) | z88dk port |
-| `Library/MSX/MSXgl/` | **CC BY-SA 4.0** | upstream Aoineko-Studio/MSXgl 의 in-tree clone |
 | `Library/MSX/{spman, mplayer, ap}-z88dk/` | MIT 또는 upstream 상속 | 각 디렉터리 README 참조 |
 | `resource/MSX/{kingsvalley, ubox_example, noborunoca, z88dk-msx-template}` | 각 upstream | reference-only, 빌드/링크 안 함 |
 

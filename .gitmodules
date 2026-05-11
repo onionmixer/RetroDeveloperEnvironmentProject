@@ -55,3 +55,6 @@
 [submodule "resource/Macintosh/QuickDraw"]
 	path = resource/Macintosh/QuickDraw
 	url = https://github.com/jrk/QuickDraw.git
+[submodule "Library/MSX/MSXgl"]
+	path = Library/MSX/MSXgl
+	url = https://github.com/aoineko-fr/MSXgl.git
