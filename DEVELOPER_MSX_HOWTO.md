@@ -319,6 +319,89 @@ grep -E "banked_call|__current_bank|PUT_P2|__far_map_bank" build/X.map
 
 상세 분석 사례 (Konami 매퍼 hang 진단 → ASCII16/Konami 변형까지): `Examples/kingsvalley_z88dk/PLAN_MIGRATION_KINGSVALLY.md` §7.
 
+#### 3.5.8 RS-232C + telnet 통신 패턴 (prototype_20)
+
+MSX ROM 에서 RS-232C cartridge (i8251) 로 GTM/openMSX RS232Net 를 거쳐 telnet 서버에 접속하는 경우 발생한 함정들. prototype_20_MSX_ROM_MSXDOS 검증 완료 (2026-05-30, **게이트웨이 → 던전 진입까지 전체 흐름 동작 확인**).
+
+**1) openMSX RS232Net 의 IP232 default ON — 최대 함정.**
+`rs232-net-ip232` setting 이 default true 라서 수신 byte 가 `0xFF` 면 modem-control magic 으로 처리되고 다음 byte 까지 응용까지 안 전달됨. telnet IAC negotiation 의 `\xff\xfb\x00` 같은 sequence 가 application 의 IAC parser 까지 도달 못 함 → IAC 응답 못 보냄 → bridge IAC negotiation timeout (2-3s) 으로 connection close. 화면 "CONNECTING..." 영원 멈춤.
+
+해결: openMSX 시작 직후 또는 `plug` 직전에:
+```tcl
+set rs232-net-ip232 false
+```
+prototype_20 의 `run_openmsx.sh` 패턴:
+```bash
+ARGS+=(-command "set rs232-net-ip232 false; set rs232-net-address ...; catch {plug msx-rs232 rs232-net}")
+```
+진단: 응용에 `iac_seen` (iac_feed 가 `0xFF` 받은 횟수) 카운터를 두면 즉시 확인 — IP232 ON 이면 0, OFF 이면 6+.
+
+**2) i8251 RX backpressure (openMSX RS232Net patch).**
+RS232Net::signal 이 i8251 `isRxBusy()` check 안 해서 9600 baud RX burst 가 i8251 single-byte buffer 에 overrun (RS232Host 는 backpressure 있음, oversight). `Emulator/openMSX/src/serial/RS232Net.cc::signal()` 에 한 줄 추가:
+```cpp
+if (conn->isRxBusy()) return;   // RS232Host 와 동일 패턴
+```
+upstream patch 가치 있음. 본 repo 의 openMSX submodule 에 적용됨 (commit `f02010e81`).
+
+**3) ubox_isr 의 VDP S#0 read 누락.**
+ubox-msx-lib-z88dk 의 `ubox_isr` 가 HTIMI hook 에 install 되는데 VDP S#0 read 가 없어서, EI busy-wait (`serial_putc` 의 TXRDY 폴링 등) 와 결합 시 IRQ flag 가 RETI 후에도 asserted → 무한 재인터럽트 cascade → C 스택 12KB 폭주 → BIOS workarea 침범 → page-3 swap. `push af` 직후 `in a, ($99)` 추가로 fix:
+```asm
+ubox_isr:
+    push af
+    in a, ($99)        ; VDP S#0 read → IRQ flag clear (defensive)
+    push ix
+    ...
+```
+`Library/MSX/ubox-msx-lib-z88dk/src/ubox/ubox_isr.asm` 에 적용됨.
+
+**4) serial_putc 송신 burst 동안 DI 책임.**
+`serial_putc` 가 TXRDY busy-wait 으로 EI 상태에서 폴링하면 위 #3 cascade 트리거. fix:
+- `serial_putc` 자체는 DI/EI 안 함 (caller 책임).
+- burst 송신 함수 (`conn_send_frame` 등) 가 전체 구간 `__asm__("di")` 로 감싸기.
+
+**5) recv_buf magic resync.**
+GTM/bridge 가 telnet connect 직후 ASCII 잔재 (`"\r\ndisconnecting."`, IAC negotiation 잔재) 를 보낼 수 있음. needle 매칭 후 trailing byte 가 recv_buf 의 첫 byte 에 들어가면 frame magic (`47 50`) 매칭 영원히 실패. `recv_buf_try_extract` 가 첫 byte 가 `0x47` 아니면 1 byte 씩 drop 하며 scan 해야 함.
+
+**6) BSS-stack 137 byte 함정.**
+megarom 빌드의 stack 시작점은 BIOS HIMEM (`$F380` 부근), BSS top 과의 간격이 정상 호출 깊이 + ISR push 만으로도 침범 가능 → BIOS workarea (RAMAD3 등) 오염 → BIOS ENASLT 가 corrupt segment 로 `out ($FF), a` → page-3 RAM swap → main RAM "사라짐" (dbg read = 0xFF). 큰 BSS (예: `g_frame.body[4096]`) 줄이거나 extram 이동 필요.
+
+**7) DKFS server 의 IAC BINARY negotiation timeout.**
+dkfsbridge 의 `iac_negotiation_timeout_ms` 가 짧으면 (default 2s/3s 등) client 가 IAC 응답을 그 안에 못 보낼 때 connection close. PRESS ENTER 같은 사용자 대기 단계는 main loop 진입 전에 두면 안 됨 — gtm_wait_connected 직후 즉시 main loop 진입해 conn_poll 가 매 frame 호출되도록 해야 한다.
+
+**8) DKFS server 의 player session race.**
+DKFS server 는 한 player ID 당 단일 connection 만 허용. **이전 session 종료 직후 같은 player ID 로 너무 빨리 (수백 ms~수 초) 재시도하면 server 측 session cleanup 이 완료되기 전이라 즉시 거부**. dkfsbridge log 에는 `connect timeout 8000ms — closing` + `took 0ms` + `shutdown` 이 같은 ms 에 표시되어 timeout 처럼 보이지만 실제는 server race-condition 거부. 처치: 수십 초~분 단위로 시간 두고 재시도, 또는 다른 player ID 사용.
+
+**9) GTM `+++` escape sequence.**
+GTM 가 stale telnet mode 일 때 (이전 session 의 server-side close 후 GTM 측 정리 안 됨) 새 `GTM CONN` 이 telnet 데이터로 처리되어 무시. `+++` escape spec 으로 command mode 복귀:
+```c
+void gtm_force_command_mode(void) {
+    for (i=0; i<72; ++i) ubox_wait();  /* (a) 1.2s idle */
+    serial_putc('+'); serial_putc('+'); serial_putc('+');
+    for (i=0; i<72; ++i) ubox_wait();  /* (c) 1.2s idle */
+    while (serial_data_ready()) serial_getc_raw();  /* drain */
+}
+```
+command mode 였던 경우 `+++` 가 line buffer 에 쌓일 수 있어 다음 명령과 prefix 충돌. **host python 검증에서 `+++` 후 `\r\n` flush 가 필요함을 확인** (`+++GTM CONN ...` 로 합쳐져 `ERROR: command is invalid` 응답). MSX 측은 GTM 가 자체 line 처리로 분리해서 안전하다면 생략 가능.
+
+**10) 폰트의 소문자 영역 누락.**
+ROM 빌드의 font.h 는 RAM 절약 목적으로 소문자 영역 (`[97]~[122]`) 을 대문자 패턴 복사 placeholder 로 두는 경우 많다. ASCII 그대로 송신하면 메모리/wire 는 소문자 `"player"` 인데 화면만 대문자 `PLAYER` 로 보임. **font 슬롯 자체는 이미 차지하고 있으므로 패턴 데이터만 교체하면 ROM 크기 영향 0** — 26 글자 5x7 left-aligned 패턴 작성으로 진짜 소문자 표시 가능.
+
+**11) CAPS LOCK 처리.**
+`ubox_read_keys` 는 PPI 직접 read 라 BIOS 의 CAPS LOCK case 변환을 우회. 따로 처리 없으면 CAPS LOCK 켜져도 무시. 가장 단순한 fix 는 BIOS workarea `CAPSLT = $FCAB` 1 byte read (BIOS 가 키 toggle + LED 자동 관리):
+```c
+#define CAPSLT (*(volatile uint8_t *)0xFCAB)
+...
+if (row >= 3 || (row == 2 && b >= 6)) {     /* 알파벳에만 */
+    if (CAPSLT) eff_shift ^= 1;             /* shift XOR caps */
+}
+```
+
+**12) Render skip + cursor blink 패턴 (P05 패턴 차용).**
+main loop 가 매 frame `txt_clear()`+전체 redraw 하면 깜박임 + load. P05 처럼:
+- main loop 의 update/render 를 **입력/server-event 시에만** 호출 (`if (input == 0) continue` 류)
+- 각 screen 의 render 에 `s_dirty` flag (입력/state 변경 시 1, render 후 0)
+- editing 모드에서만 cursor blink — main loop 가 매 N frame `g_blink_on` toggle + `need_render=1`, screen render 의 dirty=0 path 에서 cursor cell 하나만 update (전체 redraw 안 함 → 깜박임 0)
+
 ### 3.6 SDCC ↔ z88dk(sccz80) 변환 시 주의할 차이점
 
 같은 MSX C source 를 SDCC 와 z88dk(sccz80) 양쪽으로 빌드하거나, SDCC 작성된
