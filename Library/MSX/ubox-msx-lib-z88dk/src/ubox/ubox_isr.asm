@@ -38,6 +38,14 @@ _ubox_init_isr:
 ubox_isr:
     ; Preserve main register set.
     push af
+    ; Read VDP S#0 (port $99) — clears VBlank IRQ flag. Standard MSX flow
+    ; relies on the BIOS $0038 handler reading S#0 before calling HTIMI,
+    ; but some machines (e.g. FS-A1GT turbo-R) or busy-wait loops in user
+    ; code combined with HTIMI install can leave IRQ asserted on RETI →
+    ; infinite re-entry, C stack ate 12KB+ in 0.6s (prototype_20 wp).
+    ; One `in a,($99)` here defensively clears the flag regardless of
+    ; BIOS variant. A is already saved.
+    in a, ($99)
     push ix
     push iy
     push bc
