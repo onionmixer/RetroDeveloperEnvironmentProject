@@ -321,7 +321,7 @@ grep -E "banked_call|__current_bank|PUT_P2|__far_map_bank" build/X.map
 
 #### 3.5.8 RS-232C + telnet 통신 패턴 (prototype_20)
 
-MSX ROM 에서 RS-232C cartridge (i8251) 로 GTM/openMSX RS232Net 를 거쳐 telnet 서버에 접속하는 경우 발생한 함정들. prototype_20_MSX_ROM_MSXDOS 검증 완료 (2026-05-30, **게이트웨이 → 던전 진입까지 전체 흐름 동작 확인**). 2026-05-31 추가 — **dungeon 화면 구현 완료** (Phase A-G + 후속 12 commit, 5 visible + 6 latent burning bug 해결, 상세: `Examples/prototype_20_MSX_ROM_MSXDOS/PLAN_DUNGEON_IMPL.md` §8).
+MSX ROM 에서 RS-232C cartridge (i8251) 로 GTM/openMSX RS232Net 를 거쳐 telnet 서버에 접속하는 경우 발생한 함정들. prototype_20_MSX_ROM_MSXDOS 검증 완료 (2026-05-30, **게이트웨이 → 던전 진입까지 전체 흐름 동작 확인**). 2026-05-31 추가 — **dungeon 화면 구현 완료** (Phase A-G + 후속 12 commit, 5 visible + 6 latent burning bug 해결, 상세: `Examples/prototype_20_MSX_ROM_MSXDOS/PLAN_DUNGEON_IMPL.md` §8). 2026-06-02 추가 — **AKG (Arkos Tracker 3) 다중곡 wrapper 의 화면 전환 시 PSG 잔재 차단 패턴 구현 완료** (dungeon=letsroll + town/battle=converter 산출, 모든 chain 깔끔 검증, 상세: `Examples/prototype_20_MSX_ROM_MSXDOS/PLAN_DUNGEON_MUSIC_AKG.md`).
 
 **1) openMSX RS232Net 의 IP232 default ON — 최대 함정.**
 `rs232-net-ip232` setting 이 default true 라서 수신 byte 가 `0xFF` 면 modem-control magic 으로 처리되고 다음 byte 까지 응용까지 안 전달됨. telnet IAC negotiation 의 `\xff\xfb\x00` 같은 sequence 가 application 의 IAC parser 까지 도달 못 함 → IAC 응답 못 보냄 → bridge IAC negotiation timeout (2-3s) 으로 connection close. 화면 "CONNECTING..." 영원 멈춤.
