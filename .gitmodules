@@ -58,3 +58,6 @@
 [submodule "Library/MSX/MSXgl"]
 	path = Library/MSX/MSXgl
 	url = https://github.com/aoineko-fr/MSXgl.git
+[submodule "DKFS_retro"]
+	path = DKFS_retro
+	url = https://github.com/onionmixer/DKFS_retro.git
