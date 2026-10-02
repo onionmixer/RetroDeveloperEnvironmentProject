@@ -248,8 +248,10 @@ make
 # 기본 실행
 ./RetroDeveloperEnvironmentMonitor/rdemonitor
 
-# 디버그 포트 지정
-./RetroDeveloperEnvironmentMonitor/rdemonitor --debug_port=65505
+# 디버그 포트 지정 — openMSX 스트림 = 65505 · AppleWin(sa2) 스트림 = 64505
+#   (sa2 디버그 포트는 2026-10-03 부터 64501-64505 — openMSX 65501-65505 와 겹치지 않게 옮겼다)
+./RetroDeveloperEnvironmentMonitor/rdemonitor --debug_port=65505   # openMSX
+./RetroDeveloperEnvironmentMonitor/rdemonitor --debug_port=64505   # AppleWin(sa2)
 
 # 전체 로그 저장
 ./RetroDeveloperEnvironmentMonitor/rdemonitor --log_all=true
