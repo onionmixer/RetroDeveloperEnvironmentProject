@@ -19,6 +19,10 @@ memo.txt
 # Macintosh ROMs and copyrighted System disks (user-supplied; never commit)
 resource/Macintosh/rom/*
 !resource/Macintosh/rom/README.md
+# Apple //c · //c Plus ROMs (user-supplied, never committed — run_disk_iic.sh / run_disk_iicp.sh)
+resource/AppleII/rom/*
+# Apple II 3.5" 800K test disk images (third-party downloads, license unclear — never committed)
+resource/AppleII/disk35/*
 diskwork/bootdisk/macintosh/*
 !diskwork/bootdisk/macintosh/README.md
 hdd[0-6].img
